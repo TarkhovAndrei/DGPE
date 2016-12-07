@@ -1,5 +1,5 @@
 import numpy as np
-from GPElib.dynamics import InstabilityGenerator
+from GPElib import InstabilityGenerator
 from GPElib.visualisation import Visualisation
 import matplotlib
 print matplotlib.matplotlib_fname()

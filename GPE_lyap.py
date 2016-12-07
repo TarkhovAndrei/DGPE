@@ -1,5 +1,5 @@
 import numpy as np
-from GPElib.dynamics import LyapunovGenerator
+from GPElib import LyapunovGenerator
 from GPElib.visualisation import Visualisation
 import matplotlib
 print matplotlib.matplotlib_fname()
