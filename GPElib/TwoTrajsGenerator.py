@@ -1,5 +1,5 @@
 import numpy as np
-import DynamicsGenerator
+from .DynamicsGenerator import DynamicsGenerator
 
 class TwoTrajsGenerator(DynamicsGenerator):
 	def __init__(self, **kwargs):

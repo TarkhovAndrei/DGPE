@@ -8,11 +8,15 @@ class DynamicsGenerator(object):
 		self.beta = kwargs.get('beta', 0.01)
 		self.dimensionality = kwargs.get('dimensionality', 1)
 		self.N_wells = kwargs.get('N_wells', 10)
-		self.e_disorder = kwargs.get('disorder', np.zeros(self.N_wells))
+		self.Nx = kwargs.get('Nx', 10)
+		self.Ny = kwargs.get('Ny', 10)
+		self.N_tuple = (self.Nx, self.Ny)
+		self.wells = [(i,j) for i in xrange(self.Nx) for j in xrange(self.Ny)]
+		self.e_disorder = kwargs.get('disorder', np.zeros(self.N_tuple))
 		self.N_part = kwargs.get('N_part_per_well', 100000)
 		self.N_part *= self.N_wells
 		self.step = kwargs.get('step', 5.7e-05)
-		self.tau_char = kwargs.get('tau_char', 1.0 / np.sqrt(3 * self.beta * self.J * self.N_part/self.N_wells))
+		self.tau_char = kwargs.get('tau_char', 1.0 / np.sqrt(3. * self.beta * self.J * self.N_part/self.N_wells))
 		self.time = kwargs.get('time', 1.4 * 50)
 		self.time *= self.tau_char
 		self.n_steps = kwargs.get('n_steps', int(self.time / self.step))

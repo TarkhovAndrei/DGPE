@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
-import TwoTrajsGenerator
+from .TwoTrajsGenerator import TwoTrajsGenerator
 
 class LyapunovGenerator(TwoTrajsGenerator):
 	def __init__(self, **kwargs):
