@@ -11,17 +11,26 @@ class DynamicsGenerator(object):
 
 		self.N_tuple = kwargs.get('N_wells', 10)
 		self.dimensionality = kwargs.get('dimensionality', 1)
+		self.Nx = 1
+		self.Ny = 1
+		self.Nz = 1
 		if type(self.N_tuple) == type(5):
 			self.Nx = self.N_tuple
-			self.Ny = 1
-			self.N_tuple = (self.Nx, self.Ny)
-		else:
+			self.N_tuple = (self.Nx, self.Ny, self.Nz)
+		elif len(self.N_tuple) == 2:
 			self.Nx = self.N_tuple[0]
 			self.Ny = self.N_tuple[1]
+			self.N_tuple = (self.Nx, self.Ny, self.Nz)
+		elif len(self.N_tuple) == 3:
+			self.Nx = self.N_tuple[0]
+			self.Ny = self.N_tuple[1]
+			self.Nz = self.N_tuple[2]
 		if self.Ny > 1:
 			self.dimensionality = 2
-		self.N_wells = self.Nx * self.Ny
-		self.wells_indices = [(i,j) for i in xrange(self.Nx) for j in xrange(self.Ny)]
+		if self.Nz > 1:
+			self.dimensionality = 3
+		self.N_wells = self.Nx * self.Ny * self.Nz
+		self.wells_indices = [(i,j,k) for i in xrange(self.Nx) for j in xrange(self.Ny) for k in xrange(self.Nz)]
 
 		#Seeds
 		self.disorder_seed = kwargs.get('disorder_seed', 78)
@@ -70,16 +79,16 @@ class DynamicsGenerator(object):
 
 	def generate_disorder(self):
 		np.random.seed(self.disorder_seed)
-		self.e_disorder = -self.W  + 2. * self.W * np.random.rand(self.N_tuple[0], self.N_tuple[1])
+		self.e_disorder = -self.W  + 2. * self.W * np.random.rand(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
 		np.random.seed()
 
 	def phase_unwrap(self, theta):
 		return theta
 
 	def set_init_XY(self, x, y):
-		self.X[:,:,0] = x.reshape(self.N_tuple)
-		self.Y[:,:,0] = y.reshape(self.N_tuple)
-		self.RHO[:,:,0], self.THETA[:,:,0] = self.from_XY_to_polar(self.X[:,:,0], self.Y[:,:,0])
+		self.X[:,:,:,0] = x.reshape(self.N_tuple)
+		self.Y[:,:,:,0] = y.reshape(self.N_tuple)
+		self.RHO[:,:,:,0], self.THETA[:,:,:,0] = self.from_XY_to_polar(self.X[:,:,:,0], self.Y[:,:,:,0])
 
 	def from_polar_to_XY(self, rho, theta):
 		rho = np.abs(rho)
@@ -95,8 +104,8 @@ class DynamicsGenerator(object):
 	def constant_perturbation_XY(self, x0, y0):
 		np.random.seed(self.pert_seed)
 		eps = 1e-1
-		x1 = x0 + eps * np.random.randn(self.N_tuple[0],self.N_tuple[1])
-		y1 = y0 + eps * np.random.randn(self.N_tuple[0],self.N_tuple[1])
+		x1 = x0 + eps * np.random.randn(self.N_tuple[0],self.N_tuple[1], self.N_tuple[2])
+		y1 = y0 + eps * np.random.randn(self.N_tuple[0],self.N_tuple[1], self.N_tuple[2])
 		dist = self.calc_traj_shift_XY(x0, y0, x1, y1)
 		x1 = x0 + (x1 - x0) * self.PERT_EPS /dist
 		y1 = y0 + (y1 - y0) * self.PERT_EPS /dist
@@ -108,18 +117,18 @@ class DynamicsGenerator(object):
 		theta = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
 		if kind == 'random':
 			print "random"
-			theta += 2. * np.pi * np.random.rand(self.N_tuple[0], self.N_tuple[1])
+			theta += 2. * np.pi * np.random.rand(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
 		elif kind =='AF':
 			for i in self.N_tuple:
 				if i % 2 == 1:
 					theta[i] = np.pi/2
 				else:
 					theta[i] = 0
-			theta += 0.1 * np.pi * np.random.randn(self.N_tuple[0], self.N_tuple[1])
+			theta += 0.1 * np.pi * np.random.randn(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
 		theta = self.phase_unwrap(theta)
-		self.RHO[:,:,0] = rho.reshape(self.N_tuple)
-		self.THETA[:,:,0] = theta.reshape(self.N_tuple)
-		self.X[:,:,0], self.Y[:,:,0] = self.from_polar_to_XY(self.RHO[:,:,0], self.THETA[:,:,0])
+		self.RHO[:,:,:,0] = rho.reshape(self.N_tuple)
+		self.THETA[:,:,:,0] = theta.reshape(self.N_tuple)
+		self.X[:,:,:,0], self.Y[:,:,:,0] = self.from_polar_to_XY(self.RHO[:,:,:,0], self.THETA[:,:,:,0])
 		self.E_calibr = 1.0 * energy_per_site * self.N_wells
 		#self.calc_energy_XY(self.X[0,:], self.Y[0,:], 0)
 
@@ -171,17 +180,17 @@ class DynamicsGenerator(object):
 
 	def run_dynamics(self):
 		for i in xrange(1, self.n_steps):
-			if (np.any(self.RHO[:,:,i-1] ** 2 < self.threshold_XY_to_polar)):
-				psi = self.rk4_step_exp_XY(np.hstack((self.X[:,:,i-1].flatten(), self.Y[:,:,i-1].flatten())))
-				self.X[:,:,i] = psi[:self.N_wells].reshape(self.N_tuple)
-				self.Y[:,:,i] = psi[self.N_wells:].reshape(self.N_tuple)
-				self.RHO[:,:,i], self.THETA[:,:,i] = self.from_XY_to_polar(self.X[:,:,i], self.Y[:,:,i])
-				self.X[:,:,i], self.Y[:,:,i] = self.from_polar_to_XY(self.RHO[:,:,i], self.THETA[:,:,i])
+			if (np.any(self.RHO[:,:,:,i-1] ** 2 < self.threshold_XY_to_polar)):
+				psi = self.rk4_step_exp_XY(np.hstack((self.X[:,:,:,i-1].flatten(), self.Y[:,:,:,i-1].flatten())))
+				self.X[:,:,:,i] = psi[:self.N_wells].reshape(self.N_tuple)
+				self.Y[:,:,:,i] = psi[self.N_wells:].reshape(self.N_tuple)
+				self.RHO[:,:,:,i], self.THETA[:,:,:,i] = self.from_XY_to_polar(self.X[:,:,:,i], self.Y[:,:,:,i])
+				self.X[:,:,:,i], self.Y[:,:,:,i] = self.from_polar_to_XY(self.RHO[:,:,:,i], self.THETA[:,:,:,i])
 			else:
-				psi = self.rk4_step_exp(np.hstack((self.RHO[:,:,i-1].flatten(), self.THETA[:,:,i-1].flatten())))
-				self.RHO[:,:,i] = psi[:self.N_wells].reshape(self.N_tuple)
-				self.THETA[:,:,i] = psi[self.N_wells:].reshape(self.N_tuple)
-				self.X[:,:,i], self.Y[:,:,i] = self.from_polar_to_XY(self.RHO[:,:,i], self.THETA[:,:,i])
+				psi = self.rk4_step_exp(np.hstack((self.RHO[:,:,:,i-1].flatten(), self.THETA[:,:,:,i-1].flatten())))
+				self.RHO[:,:,:,i] = psi[:self.N_wells].reshape(self.N_tuple)
+				self.THETA[:,:,:,i] = psi[self.N_wells:].reshape(self.N_tuple)
+				self.X[:,:,:,i], self.Y[:,:,:,i] = self.from_polar_to_XY(self.RHO[:,:,:,i], self.THETA[:,:,:,i])
 		self.energy, self.number_of_particles, self.angular_momentum = self.calc_constants_of_motion(self.RHO, self.THETA, self.X, self.Y)
 
 	def reverse_hamiltonian(self, error_J, error_beta, error_disorder):
@@ -218,10 +227,14 @@ class DynamicsGenerator(object):
 
 	def nearest_neighbours(self, i):
 		if self.dimensionality == 1:
-			return [self.NN( (i[0] + 1, i[1]) ), self.NN( (i[0] - 1, i[1]) )]
+			return [self.NN( (i[0] + 1, i[1], i[2]) ), self.NN( (i[0] - 1, i[1], i[2]) )]
 		elif self.dimensionality == 2:
-			return [self.NN( (i[0] + 1, i[1]) ), self.NN( (i[0] - 1, i[1]) ),
-			        self.NN( (i[0], i[1] + 1) ), self.NN( (i[0], i[1] - 1) )]
+			return [self.NN( (i[0] + 1, i[1], i[2]) ), self.NN( (i[0] - 1, i[1], i[2]) ),
+			        self.NN( (i[0], i[1] + 1, i[2]) ), self.NN( (i[0], i[1] - 1, i[2]) )]
+		elif self.dimensionality == 3:
+			return [self.NN( (i[0] + 1, i[1], i[2]) ), self.NN( (i[0] - 1, i[1], i[2]) ),
+			        self.NN( (i[0], i[1] + 1, i[2]) ), self.NN( (i[0], i[1] - 1, i[2]) ),
+			        self.NN( (i[0], i[1], i[2]-1) ), self.NN( (i[0], i[1], i[2]+1) )]
 		else:
 			return 0
 
@@ -275,7 +288,7 @@ class DynamicsGenerator(object):
 		return dFdXY
 
 	def calc_constants_of_motion(self, RHO, THETA, X, Y):
-		number_of_particles = np.sum(RHO ** 2, axis=(0,1))
+		number_of_particles = np.sum(RHO ** 2, axis=(0,1,2))
 		energy = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		angular_momentum = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		for j in self.wells_indices:
@@ -296,7 +309,7 @@ class DynamicsGenerator(object):
 			self.histograms[i] = np.histogram2d(np.float64(self.X[i]), np.float64(self.Y[i]), bins=100)
 			self.rho_histograms[i] = np.histogram(np.float64(self.RHO[i] ** 2), bins=100)
 
-		self.participation_rate = np.sum(self.RHO ** 4, axis=(0,1)) / (np.sum(self.RHO ** 2, axis=(0,1)) ** 2)
+		self.participation_rate = np.sum(self.RHO ** 4, axis=(0,1,2)) / (np.sum(self.RHO ** 2, axis=(0,1,2)) ** 2)
 		self.effective_nonlinearity = self.beta * (self.participation_rate) / self.N_wells
 
 	def calc_traj_shift_XY(self, x0, y0, x1, y1):
@@ -339,11 +352,11 @@ class DynamicsGenerator(object):
 
 	def E_const_perturbation_XY(self, x0, y0, delta):
 		bnds = np.hstack((x0.flatten(), y0.flatten()))
-		x_err = 0.01 * x0
-		y_err = 0.01 * y0
+		x_err = 1./self.dimensionality * delta #0.01 * x0
+		y_err = 1./self.dimensionality * delta #0.01 * y0
 		np.random.seed()
-		x_next = x0 + x_err * np.random.randn(self.N_tuple[0], self.N_tuple[1])
-		y_next = y0 + y_err * np.random.randn(self.N_tuple[0], self.N_tuple[1])
+		x_next = x0 + x_err * np.random.randn(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
+		y_next = y0 + y_err * np.random.randn(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
 		zero_app = np.hstack((x_next.flatten(), y_next.flatten()))
 		fun = lambda x: (((self.calc_energy_XY(x[:self.N_wells].reshape(self.N_tuple),
 		                                       x[self.N_wells:].reshape(self.N_tuple),

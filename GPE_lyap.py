@@ -11,7 +11,7 @@ sys.stderr = sys.stdout
 def init_instability(inst, traj_seed):
 	inst.generate_init('random', traj_seed, 10.)
 	delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
-	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,0], inst.Y[:,:,0], delta)
+	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta)
 	x1, y1 = inst.constant_perturbation_XY(x0,y0)
 	inst.set_init_XY(x0,y0,x1,y1)
 	return err
@@ -33,17 +33,17 @@ else:
 needed_trajs = np.arange(seed_from, seed_to)
 perturb_seeds = np.arange(123,124)#(2381,2382)#(100, 110)#(106,108)#(97,98)#(97, 100)#(15, 18) #[53, 12, 20, 87]
 
-time = 4 * 800.
+time = 40 * 8000.
 # time = 1.
 # time = 100. * 15
 # step = 0.00015625
 step = 0.007
-N_wells = 100
+N_wells = 10
 W = 0.
 
 lyap = LyapunovGenerator(N_part_per_well=100,
                          W=W, disorder_seed=53,
-                         N_wells=(100,1), dimensionality=2,
+                         N_wells=(10,1,1), dimensionality=1,
                          reset_steps_duration=3000, time=time, step=step)
 
 grname = 'GPE_lyap_' + unique_id

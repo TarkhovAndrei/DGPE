@@ -11,7 +11,7 @@ sys.stderr = sys.stdout
 def init_instability(inst, traj_seed):
 	inst.generate_init('random', traj_seed, 10.)
 	delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
-	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,0], inst.Y[:,:,0], delta)
+	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta)
 	x1, y1 = inst.constant_perturbation_XY(x0,y0)
 	inst.set_init_XY(x0,y0,x1,y1)
 	return err
@@ -35,17 +35,18 @@ needed_trajs = np.arange(seed_from, seed_to)
 time = 100.
 # step = 0.00015625
 step = 0.01
-N_wells = 100
+N_wells = 64
 W = 0.
 
 inst = InstabilityGenerator(N_part_per_well=100,
-                             N_wells=(10,10), dimensionality=2,
+                             # N_wells=(10,10), dimensionality=2,
+                             N_wells=(4,4,4), dimensionality=3,
                              disorder_seed=53, time=time, step=step,
                              perturb_hamiltonian=False,
                              error_J=0, error_beta=0, error_disorder=0)
 
 grname = 'Instability_' + unique_id
-vis = Visualisation(is_local=0, GROUP_NAMES=grname)
+vis = Visualisation(is_local=1, GROUP_NAMES=grname)
 
 print "Characteristic, full, step times, n_steps"
 print inst.tau_char, inst.time, inst.step, inst.n_steps
