@@ -9,8 +9,9 @@ import sys
 sys.stderr = sys.stdout
 
 def init_instability(inst, traj_seed):
-	inst.generate_init('random', traj_seed, 10.)
-	delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
+	inst.generate_init('random', traj_seed, 100.)
+	# delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
+	delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
 	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta)
 	x1, y1 = inst.constant_perturbation_XY(x0,y0)
 	inst.set_init_XY(x0,y0,x1,y1)
@@ -33,18 +34,22 @@ else:
 needed_trajs = np.arange(seed_from, seed_to)
 perturb_seeds = np.arange(123,124)#(2381,2382)#(100, 110)#(106,108)#(97,98)#(97, 100)#(15, 18) #[53, 12, 20, 87]
 
-time = 40 * 8000.
+time = 400 * 80.
 # time = 1.
 # time = 100. * 15
 # step = 0.00015625
-step = 0.007
-N_wells = 10
+step = 0.001
+N_wells = 10.
 W = 0.
 
 lyap = LyapunovGenerator(N_part_per_well=100,
                          W=W, disorder_seed=53,
-                         N_wells=(10,1,1), dimensionality=1,
-                         reset_steps_duration=3000, time=time, step=step)
+                         # N_wells=(10,1,1), dimensionality=1, threshold_XY_to_polar=0.25,
+                         # N_wells=(10,10,1), dimensionality=2, threshold_XY_to_polar=0.25,
+                         N_wells=(4,4,4), dimensionality=3, threshold_XY_to_polar=0.25,
+                         reset_steps_duration=3000,
+                         # reset_steps_duration=150,
+                         time=time, step=step)
 
 grname = 'GPE_lyap_' + unique_id
 vis = Visualisation(is_local=0, GROUP_NAMES=grname)
@@ -92,6 +97,7 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 		         traj_seed=lyap.traj_seed,
 		         pert_seed=lyap.pert_seed,
 		         disorder_seed=lyap.disorder_seed,
+		         disorder=lyap.e_disorder,
 		         n_steps=lyap.n_steps,
 		         wells_indices=lyap.wells_indices,
 		         beta=lyap.beta, W=lyap.W,

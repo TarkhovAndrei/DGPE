@@ -9,8 +9,9 @@ import sys
 sys.stderr = sys.stdout
 
 def init_instability(inst, traj_seed):
-	inst.generate_init('random', traj_seed, 10.)
-	delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
+	inst.generate_init('random', traj_seed, 100.)
+	# delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
+	delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
 	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta)
 	x1, y1 = inst.constant_perturbation_XY(x0,y0)
 	inst.set_init_XY(x0,y0,x1,y1)
@@ -34,19 +35,20 @@ needed_trajs = np.arange(seed_from, seed_to)
 # time = 100.
 time = 100.
 # step = 0.00015625
-step = 0.01
-N_wells = 64
+step = 0.001
+N_wells = 100
 W = 0.
 
 inst = InstabilityGenerator(N_part_per_well=100,
-                             # N_wells=(10,10), dimensionality=2,
-                             N_wells=(4,4,4), dimensionality=3,
-                             disorder_seed=53, time=time, step=step,
-                             perturb_hamiltonian=False,
-                             error_J=0, error_beta=0, error_disorder=0)
+                            # N_wells=(10,1,1), dimensionality=1,
+                            # N_wells=(10,10,1), dimensionality=2,
+                            N_wells=(4,4,4), dimensionality=3,
+                            disorder_seed=53, time=time, step=step,
+                            perturb_hamiltonian=False,
+                            error_J=0, error_beta=0, error_disorder=0)
 
 grname = 'Instability_' + unique_id
-vis = Visualisation(is_local=1, GROUP_NAMES=grname)
+vis = Visualisation(is_local=0, GROUP_NAMES=grname)
 
 print "Characteristic, full, step times, n_steps"
 print inst.tau_char, inst.time, inst.step, inst.n_steps
@@ -70,6 +72,7 @@ for ii in needed_trajs:
 	err = init_instability(inst, ii)
 	if err == 1:
 		print 'Bad trajectory! ', ii
+	inst.set_pert_seed(ii)
 	inst.run_dynamics()
 	answers.append(inst.distance)
 	lambdas.append(inst.lambdas[0])
@@ -78,16 +81,16 @@ for ii in needed_trajs:
 	polarisation1.append(inst.polarisation1)
 	dist.append(inst.distance)
 	energy.append(inst.energy)
-	all_x[ii] = inst.X
-	all_y[ii] = inst.Y
-	all_x1[ii] = inst.X1
-	all_y1[ii] = inst.Y1
+	all_x[ii] = inst.X.copy()
+	all_y[ii] = inst.Y.copy()
+	all_x1[ii] = inst.X1.copy()
+	all_y1[ii] = inst.Y1.copy()
 
-	# np.savez(vis.filename(my_id) + '_traj_' + str(ii),
-	# 	         step=inst.step, time=inst.time, n_steps=inst.n_steps,
-	# 	         error_code=inst.error_code, checksum=inst.consistency_checksum,
-	# 	         distance=inst.distance,
-	# 	         x=inst.X, y=inst.Y, x1=inst.X1, y1=inst.Y1)
+# np.savez(vis.filename(my_id) + '_traj_' + str(ii),
+# 	         step=inst.step, time=inst.time, n_steps=inst.n_steps,
+# 	         error_code=inst.error_code, checksum=inst.consistency_checksum,
+# 	         distance=inst.distance,
+# 	         x=inst.X, y=inst.Y, x1=inst.X1, y1=inst.Y1)
 
 T = np.linspace(0, inst.time, inst.n_steps)
 for ii in xrange(needed_trajs.shape[0]):

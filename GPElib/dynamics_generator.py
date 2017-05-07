@@ -29,6 +29,7 @@ class DynamicsGenerator(object):
 			self.dimensionality = 2
 		if self.Nz > 1:
 			self.dimensionality = 3
+		print "Geometry: ", self.N_tuple
 		self.N_wells = self.Nx * self.Ny * self.Nz
 		self.wells_indices = [(i,j,k) for i in xrange(self.Nx) for j in xrange(self.Ny) for k in xrange(self.Nz)]
 
@@ -53,7 +54,7 @@ class DynamicsGenerator(object):
 		if self.dimensionality == 1:
 			self.threshold_XY_to_polar = kwargs.get('threshold_XY_to_polar', 1.)
 		else:
-			self.threshold_XY_to_polar = kwargs.get('threshold_XY_to_polar', 2.)
+			self.threshold_XY_to_polar = kwargs.get('threshold_XY_to_polar', 0.5)
 
 		self.energy = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.participation_rate = np.zeros(self.n_steps, dtype=self.FloatPrecision)
@@ -77,13 +78,13 @@ class DynamicsGenerator(object):
 		self.E_eps = kwargs.get('E_eps', 1e-2)
 		self.singular_eps = 1e-8
 
+	def set_pert_seed(self, pert_seed):
+		self.pert_seed = pert_seed
+
 	def generate_disorder(self):
 		np.random.seed(self.disorder_seed)
 		self.e_disorder = -self.W  + 2. * self.W * np.random.rand(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
 		np.random.seed()
-
-	def phase_unwrap(self, theta):
-		return theta
 
 	def set_init_XY(self, x, y):
 		self.X[:,:,:,0] = x.reshape(self.N_tuple)
@@ -92,17 +93,17 @@ class DynamicsGenerator(object):
 
 	def from_polar_to_XY(self, rho, theta):
 		rho = np.abs(rho)
-		theta = self.phase_unwrap(theta)
 		return rho * np.cos(theta), rho * np.sin(theta)
 
 	def from_XY_to_polar(self, x, y):
 		rho = np.sqrt((x ** 2) + (y ** 2))
 		theta = np.arctan2(y, x)
-		theta = self.phase_unwrap(theta)
 		return rho, theta
 
 	def constant_perturbation_XY(self, x0, y0):
-		np.random.seed(self.pert_seed)
+		# np.random.seed(self.pert_seed)
+		np.random.seed()
+		# print "Seed: ", self.pert_seed
 		eps = 1e-1
 		x1 = x0 + eps * np.random.randn(self.N_tuple[0],self.N_tuple[1], self.N_tuple[2])
 		y1 = y0 + eps * np.random.randn(self.N_tuple[0],self.N_tuple[1], self.N_tuple[2])
@@ -125,7 +126,6 @@ class DynamicsGenerator(object):
 				else:
 					theta[i] = 0
 			theta += 0.1 * np.pi * np.random.randn(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
-		theta = self.phase_unwrap(theta)
 		self.RHO[:,:,:,0] = rho.reshape(self.N_tuple)
 		self.THETA[:,:,:,0] = theta.reshape(self.N_tuple)
 		self.X[:,:,:,0], self.Y[:,:,:,0] = self.from_polar_to_XY(self.RHO[:,:,:,0], self.THETA[:,:,:,0])
@@ -134,30 +134,25 @@ class DynamicsGenerator(object):
 
 	def rk4_step_exp(self, y0, *args):
 		# y0[:self.N_wells] = np.abs(y0[:self.N_wells])
-		# y0[self.N_wells:] = self.phase_unwrap(y0[self.N_wells:])
 
 		h = self.step
 		k1 = h * self.Hamiltonian(y0)
 
 		y2 = y0 + (k1/2.)
 		# y2[:self.N_wells] = np.abs(y2[:self.N_wells])
-		# y2[self.N_wells:] = self.phase_unwrap(y2[self.N_wells:])
 		k2 = h * self.Hamiltonian(y2)
 
 		y3 = y0 + (k2/2.)
 		# y3[:self.N_wells] = np.abs(y3[:self.N_wells])
-		# y3[self.N_wells:] = self.phase_unwrap(y3[self.N_wells:])
 		k3 = h * self.Hamiltonian(y3)
 
 		y4 = y0 + k3
 		# y4[:self.N_wells] = np.abs(y4[:self.N_wells])
-		# y4[self.N_wells:] = self.phase_unwrap(y4[self.N_wells:])
 		k4 = h * self.Hamiltonian(y4)
 
 		yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
 
 		# yi[:self.N_wells] = np.abs(yi[:self.N_wells])
-		# yi[self.N_wells:] = self.phase_unwrap(yi[self.N_wells:])
 
 		return yi
 
@@ -185,7 +180,7 @@ class DynamicsGenerator(object):
 				self.X[:,:,:,i] = psi[:self.N_wells].reshape(self.N_tuple)
 				self.Y[:,:,:,i] = psi[self.N_wells:].reshape(self.N_tuple)
 				self.RHO[:,:,:,i], self.THETA[:,:,:,i] = self.from_XY_to_polar(self.X[:,:,:,i], self.Y[:,:,:,i])
-				self.X[:,:,:,i], self.Y[:,:,:,i] = self.from_polar_to_XY(self.RHO[:,:,:,i], self.THETA[:,:,:,i])
+				# self.X[:,:,:,i], self.Y[:,:,:,i] = self.from_polar_to_XY(self.RHO[:,:,:,i], self.THETA[:,:,:,i])
 			else:
 				psi = self.rk4_step_exp(np.hstack((self.RHO[:,:,:,i-1].flatten(), self.THETA[:,:,:,i-1].flatten())))
 				self.RHO[:,:,:,i] = psi[:self.N_wells].reshape(self.N_tuple)
@@ -352,8 +347,8 @@ class DynamicsGenerator(object):
 
 	def E_const_perturbation_XY(self, x0, y0, delta):
 		bnds = np.hstack((x0.flatten(), y0.flatten()))
-		x_err = 1./self.dimensionality * delta #0.01 * x0
-		y_err = 1./self.dimensionality * delta #0.01 * y0
+		x_err = 1. * delta #0.01 * x0
+		y_err = 1. * delta #0.01 * y0
 		np.random.seed()
 		x_next = x0 + x_err * np.random.randn(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
 		y_next = y0 + y_err * np.random.randn(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
@@ -377,7 +372,7 @@ class DynamicsGenerator(object):
 			                      (np.abs(self.calc_number_of_particles_XY(opt.x[:self.N_wells].reshape(self.N_tuple),
 			                                                               opt.x[self.N_wells:].reshape(self.N_tuple))/self.N_part) > 0.01)):
 			np.random.seed()
-			x0new = zero_app + 1.0 * np.random.randn(zero_app.shape[0])
+			x0new = zero_app + delta * np.random.randn(zero_app.shape[0])
 			opt = minimize(fun, x0new,
 		               bounds=[(xi - 10.0 * delta, xi + 10.0 * delta) for xi in bnds],
 		               options={'ftol':self.FTOL})

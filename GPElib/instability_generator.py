@@ -17,7 +17,7 @@ class InstabilityGenerator(TwoTrajsGenerator):
 		if self.perturb_hamiltonian:
 			x1, y1 = self.X[:,:,:,-1], self.Y[:,:,:,-1]
 		else:
-			x1,y1 = self.constant_perturbation_XY(self.X[:,:,:,-1],self.Y[:,:,:,-1])
+			x1, y1 = self.constant_perturbation_XY(self.X[:,:,:,-1],self.Y[:,:,:,-1])
 		self.set_init_XY(self.X[:,:,:,0], self.Y[:,:,:,0], x1, y1)
 		self.reverse_hamiltonian(self.error_J, self.error_beta, self.error_disorder)
 		for i in xrange(1, self.n_steps):
@@ -26,7 +26,7 @@ class InstabilityGenerator(TwoTrajsGenerator):
 				self.X1[:,:,:,i] = psi1[:self.N_wells].reshape(self.N_tuple)
 				self.Y1[:,:,:,i] = psi1[self.N_wells:].reshape(self.N_tuple)
 				self.RHO1[:,:,:,i], self.THETA1[:,:,:,i] = self.from_XY_to_polar(self.X1[:,:,:,i], self.Y1[:,:,:,i])
-				self.X1[:,:,:,i], self.Y1[:,:,:,i] = self.from_polar_to_XY(self.RHO1[:,:,:,i], self.THETA1[:,:,:,i])
+				# self.X1[:,:,:,i], self.Y1[:,:,:,i] = self.from_polar_to_XY(self.RHO1[:,:,:,i], self.THETA1[:,:,:,i])
 			else:
 				psi1 = self.rk4_step_exp(np.hstack((self.RHO1[:,:,:,i-1].flatten(), self.THETA1[:,:,:,i-1].flatten())))
 				self.RHO1[:,:,:,i] = psi1[:self.N_wells].reshape(self.N_tuple)
@@ -58,6 +58,6 @@ class InstabilityGenerator(TwoTrajsGenerator):
 			clf.fit(self.T[fr:to].reshape(to-fr,1), np.log(self.distance[fr:to] + 1e-15).reshape(to-fr,1))
 			self.lambdas.append(clf.coef_[0][0])
 		except:
-			print 'Bad Lyapunov lambda'
+			self.make_exception('Bad Lyapunov lambda\n')
 			self.lambdas.append(0.)
 		self.lambdas_no_regr.append((np.log(self.distance[to] + 1e-15) - np.log(self.distance[fr] + 1e-15)) / (self.T[to] - self.T[fr]))
