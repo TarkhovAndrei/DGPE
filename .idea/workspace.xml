@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPE_1D_rho_hist.ipynb" afterPath="$PROJECT_DIR$/GPE_1D_rho_hist.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPE_inst.py" afterPath="$PROJECT_DIR$/GPE_inst.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPE_lyap.py" afterPath="$PROJECT_DIR$/GPE_lyap.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPElib/__init__.py" afterPath="$PROJECT_DIR$/GPElib/__init__.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPElib/arxiv.py" afterPath="$PROJECT_DIR$/GPElib/arxiv.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPElib/instability_generator.py" afterPath="$PROJECT_DIR$/GPElib/instability_generator.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPElib/lyapunov_generator.py" afterPath="$PROJECT_DIR$/GPElib/lyapunov_generator.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPElib/trajectory_analysator.py" afterPath="$PROJECT_DIR$/GPElib/trajectory_analysator.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPElib/two_trajs_generator.py" afterPath="$PROJECT_DIR$/GPElib/two_trajs_generator.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GPElib/visualisation.py" afterPath="$PROJECT_DIR$/GPElib/visualisation.py" />
-    </list>
+    <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="" />
     <ignored path="DGPE.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -49,8 +36,8 @@
       <file leaf-file-name="GPE_lyap.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.8561644">
-              <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.65068495">
+              <caret line="19" column="33" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
               <folding>
                 <element signature="e#1552#1570#0" expanded="true" />
               </folding>
@@ -449,9 +436,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="824" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18181819" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18181819" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -923,8 +910,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.8561644">
-          <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.65068495">
+          <caret line="19" column="33" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
           <folding>
             <element signature="e#1552#1570#0" expanded="true" />
           </folding>
