@@ -1,4 +1,4 @@
-# The Discrete Gross-Pitaevskii solver in one, two and three dimensions
+# A solver for the discrete Gross-Pitaevskii equation in one, two and three dimensions
 
 A tool for modelling of the system of coupled Bose-Einstein condensates on a lattice with periodic boundary conditions in 1D, 2D and 3D.
 
