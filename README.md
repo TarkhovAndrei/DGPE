@@ -7,6 +7,9 @@ A Runge-Kutta 4th order algorithm is employed. Quadrupole precision numbers are 
 The standard routine for the largest Lyapunov exponent calculation is implemented, 
 as well as a custom Loschmidt echo (imperfect time-reversal) routine, for the lattice of coupled Bose-Einstein condensates.
 
+The code was used for obtaining numerical results for the paper:
+Andrei E. Tarkhov, Sandro Wimberger, and Boris V. Fine, Phys. Rev. A 96, 023624 (2017), https://doi.org/10.1103/PhysRevA.96.023624
+
 -----------------------------------------
 Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
 https://github.com/TarkhovAndrei/DGPE>
