@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" afterDir="false" />
     </list>
     <ignored path="DGPE.iws" />
@@ -74,8 +75,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="761" column="37" lean-forward="true" selection-start-line="761" selection-start-column="37" selection-end-line="761" selection-end-column="37" />
+            <state relative-caret-position="303">
+              <caret line="718" lean-forward="true" selection-start-line="718" selection-end-line="718" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -98,8 +99,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="507">
-              <caret line="71" column="68" selection-start-line="71" selection-start-column="68" selection-end-line="71" selection-end-column="68" />
+            <state relative-caret-position="-64">
+              <caret line="76" column="44" selection-start-line="76" selection-start-column="44" selection-end-line="76" selection-end-column="44" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -163,6 +164,10 @@
       <find>torch</find>
       <find>tf</find>
       <find>'scipy'</find>
+      <find>smooth_quench</find>
+      <find>profile</find>
+      <find>quenching</find>
+      <find>DGPE_</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -567,16 +572,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="761" column="37" lean-forward="true" selection-start-line="761" selection-start-column="37" selection-end-line="761" selection-end-column="37" />
-          <folding>
-            <element signature="e#1580#1598#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="578">
@@ -587,10 +582,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="303">
+          <caret line="718" lean-forward="true" selection-start-line="718" selection-end-line="718" />
+          <folding>
+            <element signature="e#1580#1598#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="507">
-          <caret line="71" column="68" selection-start-line="71" selection-start-column="68" selection-end-line="71" selection-end-column="68" />
+        <state relative-caret-position="-64">
+          <caret line="76" column="44" selection-start-line="76" selection-start-column="44" selection-end-line="76" selection-end-column="44" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>

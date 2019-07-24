@@ -715,7 +715,7 @@ class DynamicsGenerator(object):
 										self.nn_idz_2,
 										self.h_dis_x_flat, self.h_dis_y_flat,
 										self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat,
-										self.E_desired, self.gamma_reduction)
+										self.E_desired, self.gamma_reduction, self.lam1, self.lam2, self.smooth_quench)
 
 			ODE_result_object = torchdiffeq.odeint(relaxational_ODE,
 											# self.torch_Hamiltonian_with_Relaxation_XY_fast,

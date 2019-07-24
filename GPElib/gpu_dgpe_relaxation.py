@@ -10,7 +10,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 				 nn_idx_1, nn_idx_2, nn_idy_1, nn_idy_2, nn_idz_1, nn_idz_2,
 				 h_dis_x_flat, h_dis_y_flat,
 				 beta_disorder_array_flattened, beta_flat, e_disorder_flat,
-				 E_desired, gamma_reduction
+				 E_desired, gamma_reduction, lam1, lam2, smooth_quench
 				 ):
 		super(DGPE_ODE_RELAXATION, self).__init__()
 
@@ -38,7 +38,9 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 		self.E_new = torch.nn.Parameter(torch.tensor(np.zeros(N_wells)).to(device), requires_grad=True)
 		self.E_desired = torch.nn.Parameter(torch.tensor(E_desired).to(device), requires_grad=False)
 		self.gamma_reduction = torch.nn.Parameter(torch.tensor(gamma_reduction).to(device), requires_grad=False)
-
+		self.lam1 = torch.nn.Parameter(torch.tensor(lam1).to(device), requires_grad=False)
+		self.lam2 = torch.nn.Parameter(torch.tensor(lam2).to(device), requires_grad=False)
+		self.smooth_quench = torch.nn.Parameter(torch.tensor(smooth_quench, dtype=torch.int64).to(device), requires_grad=False)
 
 	def forward(self, t, y):
 		xL = (self.J * (
@@ -60,20 +62,38 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 									   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
 									   )
 			))
-		return (torch.cat(
-			[(self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)) * self.gamma * y[self.N_wells:] * (
-					xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
+		if self.smooth_quench[0] > 0:
+			return (torch.cat(
+				[(self.gamma_reduction * (self.calc_energy_XY(y, xL, yL) - self.E_desired)) * self.gamma * y[
+																										   self.N_wells:] * (
+						 xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
 
-			 self.e_disorder * y[self.N_wells:] - yL + self.h_dis_y_flat + self.beta *
-			 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
-																				 self.N_wells:]
-				,
+				 self.e_disorder * y[self.N_wells:] - yL + self.h_dis_y_flat + self.beta *
+				 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
+																					 self.N_wells:]
+					,
 
-			 -(self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)) * self.gamma * y[:self.N_wells] * (
-					 xL * y[self.N_wells:] - yL * y[:self.N_wells]) - self.e_disorder * y[:self.N_wells] +
-			 xL - self.h_dis_x_flat - self.beta *
-			 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
-				)
+				 -self.quenching_profile(t) * self.gamma * y[
+																											:self.N_wells] * (
+						 xL * y[self.N_wells:] - yL * y[:self.N_wells]) - self.e_disorder * y[:self.N_wells] +
+				 xL - self.h_dis_x_flat - self.beta *
+				 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
+			)
+		else:
+			return (torch.cat(
+				[(self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)) * self.gamma * y[self.N_wells:] * (
+						xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
+
+				 self.e_disorder * y[self.N_wells:] - yL + self.h_dis_y_flat + self.beta *
+				 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
+																					 self.N_wells:]
+					,
+
+				 -(self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)) * self.gamma * y[:self.N_wells] * (
+						 xL * y[self.N_wells:] - yL * y[:self.N_wells]) - self.e_disorder * y[:self.N_wells] +
+				 xL - self.h_dis_x_flat - self.beta *
+				 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
+					)
 
 	def calc_energy_XY(self, y, xL, yL):
 		return torch.sum(self.beta * 0.5 * (
@@ -84,6 +104,9 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 						 - (y[:self.N_wells] * xL +
 									 y[self.N_wells:] * yL) + self.h_dis_x_flat * y[:self.N_wells] + self.h_dis_y_flat * y[self.N_wells:]
 						 )
+
+	def quenching_profile(self, time):
+		return -self.gamma * torch.pow(self.lam1-self.lam2, -1) * (self.lam1 * torch.exp(-self.lam1 * time) - self.lam2 * torch.exp(-self.lam2 * time))
 
 # def forward(self, t, y):
 	#
