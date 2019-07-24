@@ -812,6 +812,7 @@ class DynamicsGenerator(object):
 			# 	ODE_result_object = sess.run(ODE_result_object, feed_dict=feed_dict)
 			# ODE_result = ODE_result_object
 		elif self.gpu_integrator == 'torch':
+			print('Running torch')
 
 			psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
 			ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
@@ -834,6 +835,7 @@ class DynamicsGenerator(object):
 			ODE_result = ODE_result_object.detach().cpu().numpy()
 
 		elif self.integrator == 'scipy':
+			print('Running scipy')
 			psi0 = np.hstack((self.X[:,:,:,0].flatten(), self.Y[:,:,:,0].flatten()))
 			ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
 			self.T[:self.n_steps] = ts
@@ -1106,7 +1108,7 @@ class DynamicsGenerator(object):
 			# 	ODE_result_object = sess.run(ODE_result_object, feed_dict=feed_dict)
 			# ODE_result = ODE_result_object
 		elif self.gpu_integrator == 'torch':
-
+			print('Running torch')
 			psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
 			ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
 			self.T[:N_max] = ts
@@ -1129,6 +1131,7 @@ class DynamicsGenerator(object):
 			ODE_result = ODE_result_object.detach().cpu().numpy()
 
 		elif self.integrator == 'scipy':
+			print('Running scipy')
 			psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
 			ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
 			self.T[:N_max] = ts

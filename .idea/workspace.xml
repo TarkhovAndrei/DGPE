@@ -74,8 +74,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="298">
-              <caret line="42" column="52" lean-forward="true" selection-start-line="42" selection-start-column="52" selection-end-line="42" selection-end-column="52" />
+            <state relative-caret-position="243">
+              <caret line="815" selection-start-line="815" selection-end-line="815" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -155,6 +155,8 @@
       <find>DGPE_ODE</find>
       <find>torch_get_gamma</find>
       <find>torch_gamma_reduction</find>
+      <find>scipy</find>
+      <find>'scipy'</find>
       <find>'torch'</find>
     </findStrings>
   </component>
@@ -582,8 +584,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="298">
-          <caret line="42" column="52" lean-forward="true" selection-start-line="42" selection-start-column="52" selection-end-line="42" selection-end-column="52" />
+        <state relative-caret-position="243">
+          <caret line="815" selection-start-line="815" selection-end-line="815" />
           <folding>
             <element signature="e#1580#1598#0" expanded="true" />
           </folding>
