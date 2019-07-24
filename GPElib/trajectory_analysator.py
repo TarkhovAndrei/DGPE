@@ -24,8 +24,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
-
-
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.linear_model import LinearRegression, Lasso
@@ -181,7 +179,7 @@ class TrajectoryAnalysator(object):
 			clf.fit(self.T[fr:to].reshape(to-fr,1), np.log(self.distance[fr:to] + 1e-15).reshape(to-fr,1))
 			self.lambdas.append(clf.coef_[0][0])
 		except:
-			print 'Bad Lyapunov lambda'
+			print('Bad Lyapunov lambda')
 			self.lambdas.append(0.)
 		self.lambdas_no_regr.append((np.log(self.distance[to] + 1e-15) - np.log(self.distance[fr] + 1e-15)) / (self.T[to] - self.T[fr]))
 
@@ -196,6 +194,6 @@ class TrajectoryAnalysator(object):
 				clf.fit(self.T[fr:to].reshape(to-fr,1), np.log(self.distance[fr:to] + 1e-15).reshape(to-fr,1))
 				self.lambdas.append(clf.coef_[0][0])
 			except:
-				print 'Bad Lyapunov lambda'
+				print('Bad Lyapunov lambda')
 				self.lambdas.append(0.)
 			self.lambdas_no_regr.append((np.log(self.distance[to] + 1e-15) - np.log(self.distance[fr]+ 1e-15)) / (self.T[to] - self.T[fr]))
