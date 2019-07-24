@@ -30,7 +30,7 @@ class DGPE_ODE(torch.nn.Module):
 		# self.torch_first_half = torch.nn.Parameter(torch.tensor(np.arange(N_wells), dtype=torch.int64).to(device))
 		# self.torch_second_half = torch.nn.Parameter(torch.tensor(np.arange(N_wells, 2 * N_wells), dtype=torch.int64).to(device))
 
-		self.N_wells = torch.nn.Parameter(torch.tensor(N_wells, dtype=torch.int64, requires_grad=False).to(device))
+		self.N_wells = torch.nn.Parameter(torch.tensor(N_wells, dtype=torch.int64).to(device), requires_grad=False)
 
 		# self.torch_psi = torch.tensor(self.psi, dtype=self.torch_FloatPrecision, device=self.torch_device)
 		# self.torch_x = torch.tensor(self.psi[:self.N_wells], dtype=self.torch_FloatPrecision,
