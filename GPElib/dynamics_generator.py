@@ -39,7 +39,7 @@ import torch
 import torchdiffeq
 from torch.autograd import Variable
 
-from gpu_dgpe_conservative import DGPE_ODE
+from .gpu_dgpe_conservative import DGPE_ODE
 
 class DynamicsGenerator(object):
 	def __init__(self, **kwargs):
