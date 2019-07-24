@@ -69,7 +69,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 																				 self.N_wells:]
 				,
 
-			 -(self.gamma_reduction * (self.calc_energy_XY(y) - self.E_desired)) * self.gamma * y[:self.N_wells] * (
+			 -(self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)) * self.gamma * y[:self.N_wells] * (
 					 xL * y[self.N_wells:] - yL * y[:self.N_wells]) - self.e_disorder * y[:self.N_wells] +
 			 xL - self.h_dis_x_flat - self.beta *
 			 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
