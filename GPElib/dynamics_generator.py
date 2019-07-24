@@ -39,12 +39,19 @@ import torch
 import torchdiffeq
 from torch.autograd import Variable
 
+from gpu_dgpe_conservative import DGPE_ODE
+
 class DynamicsGenerator(object):
 	def __init__(self, **kwargs):
 		#Hamiltonian parameters
 
 		self.FloatPrecision = kwargs.get('FloatPrecision', np.float64)
 		self.torch_FloatPrecision = kwargs.get('torch_FloatPrecision', torch.float64)
+		torch.set_default_dtype(self.torch_FloatPrecision)
+		self.torch_gpu_id = kwargs.get('gpu_id', 0)
+		self.torch_device = torch.device('cuda:' + str(self.torch_gpu_id)
+										 if torch.cuda.is_available() else 'cpu')
+
 		# self.tf_FloatPrecision = kwargs.get('tf_FloatPrecision', tf.float64)
 
 		self.gpu_integrator = kwargs.get('gpu_integrator', 'None')
@@ -246,9 +253,6 @@ class DynamicsGenerator(object):
 		self.configure(kwargs)
 
 		if self.gpu_integrator == 'torch':
-			self.torch_gpu_id = kwargs.get('gpu_id', 0)
-			self.torch_device = torch.device('cuda:' + str(self.torch_gpu_id)
-									   if torch.cuda.is_available() else 'cpu')
 
 			# self.tf_J = tf.placeholder(self.tf_FloatPrecision, name='J')
 			# self.tf_anisotropy = tf.placeholder(self.tf_FloatPrecision, name='anisotropy')
@@ -812,14 +816,21 @@ class DynamicsGenerator(object):
 			ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
 			self.T[:self.n_steps] = ts
 
-			ODE_result_object = torchdiffeq.odeint(self.torch_HamiltonianXY_fast,
+			conservative_ODE = DGPE_ODE(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma,
+				 self.nn_idx_1, self.nn_idx_2, self.nn_idy_1, self.nn_idy_2, self.nn_idz_1, self.nn_idz_2,
+				 self.h_dis_x_flat, self.h_dis_y_flat,
+				 self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat)
+
+			ODE_result_object = torchdiffeq.odeint(
+										  # self.torch_HamiltonianXY_fast,
+										  conservative_ODE,
 										  torch.from_numpy(psi0).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 									      torch.from_numpy(ts).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 										  rtol=self.rtol,
 										  atol=self.atol
 										)
 
-			ODE_result = ODE_result_object.cpu().numpy()
+			ODE_result = ODE_result_object.detach().cpu().numpy()
 
 		elif self.integrator == 'scipy':
 			psi0 = np.hstack((self.X[:,:,:,0].flatten(), self.Y[:,:,:,0].flatten()))
