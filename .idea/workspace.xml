@@ -65,8 +65,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="537">
-              <caret line="1572" column="39" lean-forward="true" selection-start-line="1572" selection-start-column="39" selection-end-line="1572" selection-end-column="39" />
+            <state relative-caret-position="488">
+              <caret line="1129" lean-forward="true" selection-start-line="1129" selection-end-line="1129" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -148,7 +148,13 @@
       <find>index_tuple_to_num</find>
       <find>JacobianXY</find>
       <find>.cuda()</find>
+      <find>self.torch_dpsi</find>
+      <find>rk4</find>
+      <find>def torch_</find>
       <find>'torch'</find>
+      <find>torchdiffeq.odeint</find>
+      <find>torch_Hami</find>
+      <find>odeint</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -543,8 +549,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="537">
-          <caret line="1572" column="39" lean-forward="true" selection-start-line="1572" selection-start-column="39" selection-end-line="1572" selection-end-column="39" />
+        <state relative-caret-position="488">
+          <caret line="1129" lean-forward="true" selection-start-line="1129" selection-end-line="1129" />
           <folding>
             <element signature="e#1580#1598#0" expanded="true" />
           </folding>

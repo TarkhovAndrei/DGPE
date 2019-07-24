@@ -735,15 +735,6 @@ class DynamicsGenerator(object):
 		self.psi = y0
 		return self.RelaxationXY_fast(time=ts) + self.HamiltonianXY_fast(time=ts)
 
-	def torch_full_eq_of_motion(self, ts, y0):#y0, ts):
-		# self.torch_psi.data.zero_().add_(y0)
-		self.torch_psi = y0
-		self.torch_x = y0[:self.N_wells]
-		self.torch_y = y0[self.N_wells:]
-		# self.torch_x.data.zero_().add_(torch.gather(y0, 0, self.torch_first_half))
-		# self.torch_y.data.zero_().add_(torch.gather(y0, 0, self.torch_second_half))
-		return self.torch_Hamiltonian_with_Relaxation_XY_fast()
-
 	def J_func_full_eq_of_motion(self, ts, y0):#y0, ts):
 		self.psiJac = y0
 		self.FullJacobianWithRelaxXY_fast()
@@ -753,13 +744,6 @@ class DynamicsGenerator(object):
 		self.psi = y0
 		return self.HamiltonianXY_fast()
 
-	def torch_full_eq_of_motion_conservative(self, ts, y0):#y0, ts):
-		self.torch_psi = y0
-		# self.torch_x = torch.gather(y0, 0, self.torch_first_half)
-		# self.torch_y = torch.gather(y0, 0, self.torch_second_half)
-		self.torch_x = y0[:self.N_wells]
-		self.torch_y = y0[self.N_wells:]
-		return self.torch_HamiltonianXY_fast()
 
 	def tf_full_eq_of_motion_conservative(self, y0, ts):#y0, ts):
 		# self.tf_psi = tf.get_variable("tf_psi", dtype=self.tf_FloatPrecision,
@@ -828,7 +812,7 @@ class DynamicsGenerator(object):
 			ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
 			self.T[:self.n_steps] = ts
 
-			ODE_result_object = torchdiffeq.odeint(self.torch_full_eq_of_motion_conservative,
+			ODE_result_object = torchdiffeq.odeint(self.torch_HamiltonianXY_fast,
 										  torch.from_numpy(psi0).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 									      torch.from_numpy(ts).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 										  rtol=self.rtol,
@@ -1115,7 +1099,7 @@ class DynamicsGenerator(object):
 			ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
 			self.T[:N_max] = ts
 
-			ODE_result_object = torchdiffeq.odeint(self.torch_full_eq_of_motion,
+			ODE_result_object = torchdiffeq.odeint(self.torch_Hamiltonian_with_Relaxation_XY_fast,
 												   torch.from_numpy(psi0).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 												   torch.from_numpy(ts).type(self.torch_FloatPrecision).to(self.torch_device),# dtype=self.torch_FloatPrecision),
 												   rtol=self.rtol,
@@ -1477,8 +1461,13 @@ class DynamicsGenerator(object):
 
 		return self.dpsi.copy()
 
+	def torch_HamiltonianXY_fast(self, ts, y0):
+		self.torch_psi = y0
+		# self.torch_x = torch.gather(y0, 0, self.torch_first_half)
+		# self.torch_y = torch.gather(y0, 0, self.torch_second_half)
+		self.torch_x = y0[:self.N_wells]
+		self.torch_y = y0[self.N_wells:]
 
-	def torch_HamiltonianXY_fast(self):
 		self.torch_dpsi = torch.cat([self.torch_e_disorder * self.torch_y, -self.torch_e_disorder * self.torch_x], dim=0)
 
 		self.torch_xL = (self.torch_J * (
@@ -1511,7 +1500,13 @@ class DynamicsGenerator(object):
 
 		return self.torch_dpsi
 
-	def torch_Hamiltonian_with_Relaxation_XY_fast(self):
+	def torch_Hamiltonian_with_Relaxation_XY_fast(self, ts, y0):
+		self.torch_psi = y0
+		self.torch_x = y0[:self.N_wells]
+		self.torch_y = y0[self.N_wells:]
+
+		# self.torch_x.data.zero_().add_(torch.gather(y0, 0, self.torch_first_half))
+		# self.torch_y.data.zero_().add_(torch.gather(y0, 0, self.torch_second_half))
 
 		self.torch_xL = (self.torch_J.mul(
 				torch.gather(self.torch_x, 0, self.torch_nn_idx_1).add(
@@ -1570,7 +1565,7 @@ class DynamicsGenerator(object):
 		# self.torch_dpsi[self.torch_second_half].add_(- self.torch_beta *
 		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x)
 
-		return self.torch_dpsi.detach()
+		return self.torch_dpsi
 
 	def RelaxationXY_fast(self, time=0.):
 		self.dpsi *= 0
