@@ -1513,7 +1513,7 @@ class DynamicsGenerator(object):
 
 	def torch_Hamiltonian_with_Relaxation_XY_fast(self):
 
-		self.torch_xL.zero_().add_(self.torch_J * (
+		self.torch_xL = (self.torch_J * (
 				torch.gather(self.torch_x, 0, self.torch_nn_idx_1) +
 				torch.gather(self.torch_x, 0, self.torch_nn_idx_2) +
 				torch.gather(self.torch_x, 0, self.torch_nn_idy_1) +
@@ -1523,7 +1523,7 @@ class DynamicsGenerator(object):
 								   )
 		))
 
-		self.torch_yL.zero_().add_(self.torch_J * (
+		self.torch_yL = (self.torch_J * (
 				torch.gather(self.torch_y, 0, self.torch_nn_idx_1) +
 				torch.gather(self.torch_y, 0, self.torch_nn_idx_2) +
 				torch.gather(self.torch_y, 0, self.torch_nn_idy_1) +
@@ -1533,40 +1533,40 @@ class DynamicsGenerator(object):
 								   )
 		))
 
-		self.torch_dpsi[self.torch_first_half].zero_().add_(self.torch_gamma * self.torch_y * (
-				self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
-		self.torch_dpsi[self.torch_second_half].zero_().add_(-self.torch_gamma * self.torch_x * (
-									 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
+		# self.torch_dpsi[self.torch_first_half].zero_().add_(self.torch_gamma * self.torch_y * (
+		# 		self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
+		# self.torch_dpsi[self.torch_second_half].zero_().add_(-self.torch_gamma * self.torch_x * (
+		# 							 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
 
-		# self.torch_dpsi = torch.cat([self.torch_gamma * self.torch_y * (
-		# 		self.torch_xL * self.torch_y - self.torch_yL * self.torch_x),
-		# 					 -self.torch_gamma * self.torch_x * (
-		# 							 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x)], dim=0)
+		self.torch_dpsi = torch.cat([self.torch_gamma * self.torch_y * (
+				self.torch_xL * self.torch_y - self.torch_yL * self.torch_x),
+							 -self.torch_gamma * self.torch_x * (
+									 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x)], dim=0)
 
 		self.torch_dpsi.mul_(self.torch_get_gamma_reduction())
 
-		# self.torch_dpsi.add_(torch.cat([self.torch_e_disorder * self.torch_y, -self.torch_e_disorder * self.torch_x], dim=0))
+		self.torch_dpsi.add_(torch.cat([self.torch_e_disorder * self.torch_y, -self.torch_e_disorder * self.torch_x], dim=0))
 
-		self.torch_dpsi[self.torch_first_half].add_(self.torch_e_disorder * self.torch_y)
-		self.torch_dpsi[self.torch_second_half].add_(-self.torch_e_disorder * self.torch_x)
+		# self.torch_dpsi[self.torch_first_half].add_(self.torch_e_disorder * self.torch_y)
+		# self.torch_dpsi[self.torch_second_half].add_(-self.torch_e_disorder * self.torch_x)
 
-		# self.torch_dpsi.add_(torch.cat([-self.torch_yL, self.torch_xL], dim=0))
-		self.torch_dpsi[self.torch_first_half].add_(-self.torch_yL)
-		self.torch_dpsi[self.torch_second_half].add_(self.torch_xL)
+		self.torch_dpsi.add_(torch.cat([-self.torch_yL, self.torch_xL], dim=0))
+		# self.torch_dpsi[self.torch_first_half].add_(-self.torch_yL)
+		# self.torch_dpsi[self.torch_second_half].add_(self.torch_xL)
 
-		# self.torch_dpsi.add_(torch.cat([self.torch_h_dis_y_flat, -self.torch_h_dis_x_flat], dim=0))
+		self.torch_dpsi.add_(torch.cat([self.torch_h_dis_y_flat, -self.torch_h_dis_x_flat], dim=0))
 
-		self.torch_dpsi[self.torch_first_half].add_(self.torch_h_dis_y_flat)
-		self.torch_dpsi[self.torch_second_half].add_(-self.torch_h_dis_x_flat)
+		# self.torch_dpsi[self.torch_first_half].add_(self.torch_h_dis_y_flat)
+		# self.torch_dpsi[self.torch_second_half].add_(-self.torch_h_dis_x_flat)
 
-		# self.torch_dpsi.add_(torch.cat([self.torch_beta *
-		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y, - self.torch_beta *
-		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x], dim=0))
+		self.torch_dpsi.add_(torch.cat([self.torch_beta *
+				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y, - self.torch_beta *
+				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x], dim=0))
 
-		self.torch_dpsi[self.torch_first_half].add_(self.torch_beta *
-				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y)
-		self.torch_dpsi[self.torch_second_half].add_(- self.torch_beta *
-				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x)
+		# self.torch_dpsi[self.torch_first_half].add_(self.torch_beta *
+		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y)
+		# self.torch_dpsi[self.torch_second_half].add_(- self.torch_beta *
+		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x)
 
 		return self.torch_dpsi
 
