@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GPE_phase_exp.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPE_phase_exp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/instability_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/instability_generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/lyapunov_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/lyapunov_generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/topology.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/topology.py" afterDir="false" />
@@ -29,8 +30,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPE_inst.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="390">
-              <caret line="26" selection-start-line="26" selection-end-line="26" />
+            <state>
+              <caret selection-end-line="25" selection-end-column="3" />
               <folding>
                 <element signature="e#1588#1606#0" expanded="true" />
               </folding>
@@ -41,16 +42,28 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPE_phase_exp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="390">
-              <caret line="26" selection-start-line="26" selection-end-line="26" />
+            <state relative-caret-position="375">
+              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+              <folding>
+                <element signature="e#1588#1606#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="375">
+              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPE_phase.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-635">
+            <state relative-caret-position="450">
               <caret line="33" column="22" selection-start-line="33" selection-start-column="22" selection-end-line="33" selection-end-column="22" />
             </state>
           </provider>
@@ -59,8 +72,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="390">
-              <caret line="26" selection-start-line="26" selection-end-line="26" />
+            <state>
+              <caret selection-end-line="25" selection-end-column="3" />
               <folding>
                 <element signature="e#1588#1606#0" expanded="true" />
               </folding>
@@ -69,19 +82,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GPElib/lyapunov_generator.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret selection-end-line="25" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/topology.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="375">
-              <caret line="25" selection-start-line="25" selection-end-line="25" />
+              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
             </state>
           </provider>
         </entry>
@@ -90,7 +94,7 @@
         <entry file="file://$PROJECT_DIR$/GPElib/visualisation.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="375">
-              <caret line="25" selection-start-line="25" selection-end-line="25" />
+              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
               <folding>
                 <element signature="e#1581#1612#0" expanded="true" />
               </folding>
@@ -101,8 +105,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/instability_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="24" column="3" selection-start-line="24" selection-start-column="3" selection-end-line="24" selection-end-column="3" />
+            <state relative-caret-position="375">
+              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
               <folding>
                 <element signature="e#1588#1606#0" expanded="true" />
               </folding>
@@ -114,7 +118,7 @@
         <entry file="file://$PROJECT_DIR$/GPElib/two_trajs_generator.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="375">
-              <caret line="25" selection-start-line="25" selection-end-line="25" />
+              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
               <folding>
                 <element signature="e#1588#1606#0" expanded="true" />
               </folding>
@@ -125,8 +129,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/trajectory_analysator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="18" selection-start-line="18" selection-end-line="18" />
+            <state relative-caret-position="375">
+              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+              <folding>
+                <element signature="e#1588#1606#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -164,16 +171,17 @@
         <option value="$PROJECT_DIR$/GPElib/__init__.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
-        <option value="$PROJECT_DIR$/GPElib/instability_generator.py" />
-        <option value="$PROJECT_DIR$/GPElib/lyapunov_generator.py" />
-        <option value="$PROJECT_DIR$/GPElib/topology.py" />
-        <option value="$PROJECT_DIR$/GPElib/trajectory_analysator.py" />
-        <option value="$PROJECT_DIR$/GPElib/two_trajs_generator.py" />
-        <option value="$PROJECT_DIR$/GPElib/visualisation.py" />
         <option value="$PROJECT_DIR$/GPE_lyap.py" />
         <option value="$PROJECT_DIR$/GPE_inst.py" />
-        <option value="$PROJECT_DIR$/GPE_phase_exp.py" />
         <option value="$PROJECT_DIR$/GPE_phase.py" />
+        <option value="$PROJECT_DIR$/GPElib/lyapunov_generator.py" />
+        <option value="$PROJECT_DIR$/GPElib/topology.py" />
+        <option value="$PROJECT_DIR$/GPElib/visualisation.py" />
+        <option value="$PROJECT_DIR$/GPElib/instability_generator.py" />
+        <option value="$PROJECT_DIR$/GPElib/two_trajs_generator.py" />
+        <option value="$PROJECT_DIR$/GPElib/trajectory_analysator.py" />
+        <option value="$PROJECT_DIR$/GPE_phase_exp.py" />
+        <option value="$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py" />
       </list>
     </option>
   </component>
@@ -437,16 +445,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/instability_generator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="24" column="3" selection-start-line="24" selection-start-column="3" selection-end-line="24" selection-end-column="3" />
-          <folding>
-            <element signature="e#1588#1606#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/mathematics.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="390">
@@ -457,51 +455,54 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/lyapunov_generator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/topology.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="375">
-          <caret line="25" selection-start-line="25" selection-end-line="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/trajectory_analysator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" selection-start-line="18" selection-end-line="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/two_trajs_generator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" selection-start-line="25" selection-end-line="25" />
-          <folding>
-            <element signature="e#1588#1606#0" expanded="true" />
-          </folding>
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/visualisation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="375">
-          <caret line="25" selection-start-line="25" selection-end-line="25" />
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
           <folding>
             <element signature="e#1581#1612#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/lyapunov_generator.py">
+    <entry file="file://$PROJECT_DIR$/GPElib/instability_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret selection-end-line="25" />
+        <state relative-caret-position="375">
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+          <folding>
+            <element signature="e#1588#1606#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
+    <entry file="file://$PROJECT_DIR$/GPElib/two_trajs_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="26" selection-start-line="26" selection-end-line="26" />
+        <state relative-caret-position="375">
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+          <folding>
+            <element signature="e#1588#1606#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/trajectory_analysator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
           <folding>
             <element signature="e#1588#1606#0" expanded="true" />
           </folding>
@@ -510,8 +511,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPE_inst.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="26" selection-start-line="26" selection-end-line="26" />
+        <state>
+          <caret selection-end-line="25" selection-end-column="3" />
+          <folding>
+            <element signature="e#1588#1606#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPE_phase.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="33" column="22" selection-start-line="33" selection-start-column="22" selection-end-line="33" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="25" selection-end-column="3" />
           <folding>
             <element signature="e#1588#1606#0" expanded="true" />
           </folding>
@@ -520,15 +538,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPE_phase_exp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="26" selection-start-line="26" selection-end-line="26" />
+        <state relative-caret-position="375">
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+          <folding>
+            <element signature="e#1588#1606#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPE_phase.py">
+    <entry file="file://$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-635">
-          <caret line="33" column="22" selection-start-line="33" selection-start-column="22" selection-end-line="33" selection-end-column="22" />
+        <state relative-caret-position="375">
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
         </state>
       </provider>
     </entry>
