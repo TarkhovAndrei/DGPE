@@ -1,4 +1,5 @@
 '''
+<<<<<<< HEAD
 Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,9 +26,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+=======
+Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
+https://github.com/TarkhovAndrei/DGPE>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject to the following 2 conditions:
+
+1) If any part of the present source code is used for any purposes followed by publication of obtained results,
+the citation of the present code shall be provided according to the rule:
+
+    "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
+    source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE
+    was used to obtain the presented results, 2017."
+
+2) The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'''
+>>>>>>> 4972cf8dfc01647229d5501ce4d8ea85c2e54f86
 
 import numpy as np
-from GPElib.dynamics import LyapunovGenerator
+from GPElib.lyapunov_generator import LyapunovGenerator
 from GPElib.visualisation import Visualisation
 import matplotlib
 import matplotlib.pyplot as plt
@@ -36,9 +63,10 @@ import sys
 sys.stderr = sys.stdout
 
 def init_instability(inst, traj_seed):
-	inst.generate_init('random', traj_seed, 10.)
-	delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
-	x0, y0, err = inst.E_const_perturbation_XY(inst.X[0,:], inst.Y[0,:], delta)
+	inst.generate_init('random', traj_seed, 100.)
+	# delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
+	delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
+	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta)
 	x1, y1 = inst.constant_perturbation_XY(x0,y0)
 	inst.set_init_XY(x0,y0,x1,y1)
 	return err
@@ -52,7 +80,7 @@ if len(sys.argv) > 4:
 	unique_id = sys.argv[4]
 else:
 	seed_from = 0
-	seed_to = 5
+	seed_to = 1
 	needed_trajs = np.arange(seed_from, seed_to)
 	my_id = 0
 	unique_id = 'ID_not_stated'
@@ -60,16 +88,23 @@ else:
 needed_trajs = np.arange(seed_from, seed_to)
 perturb_seeds = np.arange(123,124)#(2381,2382)#(100, 110)#(106,108)#(97,98)#(97, 100)#(15, 18) #[53, 12, 20, 87]
 
-time = 4 * 800.
+time = 400 * 80.
 # time = 1.
 # time = 100. * 15
 # step = 0.00015625
-step = 0.01
-N_wells = 20
-W = 4.
-np.random.seed(78)
-e_disorder = -W  + 2. * W * np.random.rand(N_wells)
-lyap = LyapunovGenerator(N_part_per_well=100, N_wells=N_wells, disorder=e_disorder, reset_steps_duration=3000, time=time, step=step)
+step = 0.001
+N_wells = 10.
+W = 0.
+
+lyap = LyapunovGenerator(N_part_per_well=100,
+                         W=W, disorder_seed=53,
+                         # N_wells=(10,1,1), dimensionality=1, threshold_XY_to_polar=0.25,
+                         # N_wells=(10,10,1), dimensionality=2, threshold_XY_to_polar=0.25,
+                         N_wells=(10,1,1), dimensionality=1, threshold_XY_to_polar=0.25,
+                         reset_steps_duration=3000,
+                         # reset_steps_duration=150,
+                         time=time, step=step)
+
 grname = 'GPE_lyap_' + unique_id
 vis = Visualisation(is_local=0, GROUP_NAMES=grname)
 
@@ -111,6 +146,25 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 		print lyap.lambdas_no_regr
 		num_good += 1
 		plt.semilogy(lyap.T, lyap.distance)
+		np.savez(vis.filename(my_id) + '_traj_' + str(i_traj),
+		         step=lyap.step, time=lyap.time,
+		         traj_seed=lyap.traj_seed,
+		         pert_seed=lyap.pert_seed,
+		         disorder_seed=lyap.disorder_seed,
+		         disorder=lyap.e_disorder,
+		         n_steps=lyap.n_steps,
+		         wells_indices=lyap.wells_indices,
+		         beta=lyap.beta, W=lyap.W,
+		         J=lyap.J, N_tuple=lyap.N_tuple,
+		         energy=lyap.energy, number_of_particles=lyap.number_of_particles,
+		         eff_nonl=lyap.effective_nonlinearity,
+		         error_code=lyap.error_code, checksum=lyap.consistency_checksum,
+		         distance=lyap.distance,
+		         x=lyap.X, y=lyap.Y, x1=lyap.X1, y1=lyap.Y1,
+		         lambdas=lyap.lambdas, lambdas_no_regr=lyap.lambdas_no_regr,
+		         hist2d=lyap.histograms, hist1d=lyap.rho_histograms,
+		         hist2d1=lyap.histograms1, hist1d1=lyap.rho_histograms1)
+
 plt.savefig(vis.HOMEDIR + 'pics/Lyap_' + unique_id + '_' + str(my_id)+'.png', format='png', dpi=100)
 
 print "Error code: ", lyap.error_code
@@ -121,6 +175,6 @@ np.savez(vis.filename(my_id),
          eff_nonl=effective_nonlinearity,
          numb_of_part=numb_of_part, energies=energies,
          chosen=chosen_trajs, step=lyap.step, time=lyap.time, n_steps=lyap.n_steps,
-         my_info=[seed_from, seed_to, needed_trajs, my_id],
+         my_info=[seed_from, seed_to, my_id], needed_trajs=needed_trajs,
          checksum=lyap.consistency_checksum, error_code=lyap.error_code,
          distance=lyap.distance)

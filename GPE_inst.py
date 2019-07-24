@@ -1,4 +1,5 @@
 '''
+<<<<<<< HEAD
 Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,10 +24,35 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+=======
+Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
+https://github.com/TarkhovAndrei/DGPE>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject to the following 2 conditions:
+
+1) If any part of the present source code is used for any purposes followed by publication of obtained results,
+the citation of the present code shall be provided according to the rule:
+
+    "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
+    source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE
+    was used to obtain the presented results, 2017."
+
+2) The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+>>>>>>> 4972cf8dfc01647229d5501ce4d8ea85c2e54f86
 '''
 
 import numpy as np
-from GPElib.dynamics import InstabilityGenerator
+from GPElib.instability_generator import InstabilityGenerator
 from GPElib.visualisation import Visualisation
 import matplotlib
 import matplotlib.pyplot as plt
@@ -35,9 +61,10 @@ import sys
 sys.stderr = sys.stdout
 
 def init_instability(inst, traj_seed):
-	inst.generate_init('random', traj_seed, 10.)
-	delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
-	x0, y0, err = inst.E_const_perturbation_XY(inst.X[0,:], inst.Y[0,:], delta)
+	inst.generate_init('random', traj_seed, 100.)
+	# delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
+	delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
+	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta)
 	x1, y1 = inst.constant_perturbation_XY(x0,y0)
 	inst.set_init_XY(x0,y0,x1,y1)
 	return err
@@ -51,7 +78,7 @@ if len(sys.argv) > 4:
 	unique_id = sys.argv[4]
 else:
 	seed_from = 0
-	seed_to = 5
+	seed_to = 3
 	my_id = 0
 	unique_id = 'ID_not_stated'
 
@@ -60,14 +87,18 @@ needed_trajs = np.arange(seed_from, seed_to)
 # time = 100.
 time = 100.
 # step = 0.00015625
-step = 0.01
+step = 0.001
 N_wells = 100
-W = 4.
-np.random.seed(78)
-e_disorder = -W  + 2 * W * np.random.rand(N_wells)
-inst = InstabilityGenerator(N_part_per_well=100, N_wells=N_wells, disorder=e_disorder, time=time, step=step,
+W = 0.
+
+inst = InstabilityGenerator(N_part_per_well=100,
+                            # N_wells=(10,1,1), dimensionality=1,
+                            # N_wells=(10,10,1), dimensionality=2,
+                            N_wells=(4,4,4), dimensionality=3,
+                            disorder_seed=53, time=time, step=step,
                             perturb_hamiltonian=False,
                             error_J=0, error_beta=0, error_disorder=0)
+
 grname = 'Instability_' + unique_id
 vis = Visualisation(is_local=0, GROUP_NAMES=grname)
 
@@ -82,12 +113,18 @@ polarisation1 = []
 dist = []
 energy = []
 
+all_x = {}
+all_y = {}
+all_x1 = {}
+all_y1 = {}
+
 for ii in needed_trajs:
 	inst.traj_seed = ii
 	np.random.seed(ii)
 	err = init_instability(inst, ii)
 	if err == 1:
 		print 'Bad trajectory! ', ii
+	inst.set_pert_seed(ii)
 	inst.run_dynamics()
 	answers.append(inst.distance)
 	lambdas.append(inst.lambdas[0])
@@ -96,6 +133,16 @@ for ii in needed_trajs:
 	polarisation1.append(inst.polarisation1)
 	dist.append(inst.distance)
 	energy.append(inst.energy)
+	all_x[ii] = inst.X.copy()
+	all_y[ii] = inst.Y.copy()
+	all_x1[ii] = inst.X1.copy()
+	all_y1[ii] = inst.Y1.copy()
+
+# np.savez(vis.filename(my_id) + '_traj_' + str(ii),
+# 	         step=inst.step, time=inst.time, n_steps=inst.n_steps,
+# 	         error_code=inst.error_code, checksum=inst.consistency_checksum,
+# 	         distance=inst.distance,
+# 	         x=inst.X, y=inst.Y, x1=inst.X1, y1=inst.Y1)
 
 T = np.linspace(0, inst.time, inst.n_steps)
 for ii in xrange(needed_trajs.shape[0]):
@@ -104,10 +151,12 @@ for ii in xrange(needed_trajs.shape[0]):
 plt.savefig(vis.HOMEDIR + 'pics/Inst_' + unique_id + '_' + str(my_id)+'.png', format='png', dpi=100)
 
 np.savez(vis.filename(my_id),
+         x=all_x, y=all_y, x1=all_x1, y1=all_y1,
          data=answers, lambdas=lambdas, lambdas_no_regr=lambdas_no_regr,
          polar=polarisation, polar1=polarisation1,
          distance=dist, energy=energy,
          step=inst.step, time=inst.time, n_steps=inst.n_steps,
+         well_indices=inst.wells_indices,
          my_info=[seed_from, seed_to, my_id],
          needed_trajs=needed_trajs,
          description='Loschmidt echo for 10000 replicates, trying to calculate F(t)')
