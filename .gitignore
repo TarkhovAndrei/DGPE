@@ -16,3 +16,6 @@
 .ipynb_checkpoints/GPE_2D-checkpoint.ipynb
 .idea/workspace.xml
 *.xml
+GPElib/arxiv.py
+GPElib/dynamics.py
+GPElib/mathematics.py

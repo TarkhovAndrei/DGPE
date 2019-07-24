@@ -27,7 +27,7 @@ SOFTWARE.
 
 
 import numpy as np
-from GPElib.lyapunov_generator import LyapunovGenerator
+from GPElib.dynamics_generator import DynamicsGenerator
 from GPElib.visualisation import Visualisation
 import matplotlib
 print matplotlib.matplotlib_fname()
@@ -36,18 +36,15 @@ import sys
 
 sys.stderr = sys.stdout
 
-def init_instability(inst, traj_seed, from_backup=False, init_conds=None):
-	if from_backup == False:
-		inst.generate_init('random', traj_seed, 100.)
-		# delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
-		delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
-		x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta, degrees_of_freedom=10)
-		x1, y1 = inst.constant_perturbation_XY(x0,y0)
-		inst.set_init_XY(x0,y0,x1,y1)
-	else:
-		inst.set_init_XY(init_conds[0], init_conds[1], init_conds[2], init_conds[3])
-		err = 0
-	return err
+def init_instability(inst, traj_seed=42, E=1., from_backup=False, init_conds=None):
+    if from_backup == False:
+        inst.generate_init(traj_seed, E, kind='random_population_and_phase')
+        inst.set_init_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0])
+        err = 0
+    else:
+        inst.set_init_XY(init_conds[0], init_conds[1])
+        err = 0
+    return err
 
 print len(sys.argv), sys.argv
 
@@ -67,33 +64,34 @@ needed_trajs = np.arange(seed_from, seed_to)
 perturb_seeds = np.arange(123,124)#(2381,2382)#(100, 110)#(106,108)#(97,98)#(97, 100)#(15, 18) #[53, 12, 20, 87]
 
 # time = 30 * 40 * 80.
-time = 10.# * 40 * 80.
-time_backup = 1.
+time = 100.# * 40 * 80.
+time_backup = 100.
 N_backups = int(np.ceil(time / time_backup)) + 1
 time = N_backups * time_backup
 
-# time = 1.
-# time = 100. * 15
-# step = 0.00015625
-step = 0.001
+step = 0.1
 N_wells = 10.
 W = 0.
+gamma_tmp = 1.
 
-lyap = LyapunovGenerator(N_part_per_well=100,
+lyap = DynamicsGenerator(N_part_per_well=1.,
                          W=W, disorder_seed=53,
-                         # N_wells=(10,1,1), dimensionality=1, threshold_XY_to_polar=0.25,
-                         # N_wells=(10,10,1), dimensionality=2, threshold_XY_to_polar=0.25,
-                         N_wells=(10,1,1), dimensionality=1, threshold_XY_to_polar=0.25,
-                         reset_steps_duration=5,
-                         # reset_steps_duration=150,
-                         time=time_backup, step=step)
+                         N_wells=(20,20,20), dimensionality=3, anisotropy=1.0,
+                         threshold_XY_to_polar=0.25,
+                         beta=3., FloatPrecision=np.float64,
+                        integration_method='RK45',
+                         rtol=1e-8, atol=1e-8, 
+			reset_steps_duration=5,
+                         calculation_type='lyap_save_all',
+			 integrator='scipy',
+                         time=time_backup, step=step, gamma=gamma_tmp)
 
-grname = 'GPE_lyap_' + unique_id
-# vis = Visualisation(is_local=0,  HOMEDIR='/data1/andrey/data/', GROUP_NAMES=grname)
-# vis_backup = Visualisation(is_local=0,  HOMEDIR='/data1/andrey/data/backups/', GROUP_NAMES=grname)
+grname = 'GPE_phase_' + unique_id
+vis = Visualisation(is_local=0,  HOMEDIR='/data1/andrey/data/', GROUP_NAMES=grname)
+vis_backup = Visualisation(is_local=0,  HOMEDIR='/data1/andrey/data/backups/', GROUP_NAMES=grname)
 
-vis = Visualisation(is_local=1,  HOMEDIR='/Users/tarkhov/tmp/', GROUP_NAMES=grname)
-vis_backup = Visualisation(is_local=1,  HOMEDIR='/Users/tarkhov/tmp/backups/', GROUP_NAMES=grname)
+# vis = Visualisation(is_local=1,  HOMEDIR='/Users/tarkhov/tmp/', GROUP_NAMES=grname)
+# vis_backup = Visualisation(is_local=1,  HOMEDIR='/Users/tarkhov/tmp/backups/', GROUP_NAMES=grname)
 
 def try_find_backup():
 	try:
@@ -124,6 +122,11 @@ if backup_present == False:
 	chosen_trajs = []
 	effective_nonlinearity = []
 	energies = []
+	temperatures = []
+	temperatures_Amp = []
+	temperatures_Ph = []
+	energies_true = []
+	order_parameters = []
 	distances = []
 	numb_of_part = []
 	next_traj = 0
@@ -138,6 +141,11 @@ else:
 	chosen_trajs = backup['chosen']
 	effective_nonlinearity = backup['eff_nonl']
 	energies = backup['energies']
+	temperatures = backup['temperatures']
+	temperatures_Amp = backup['temperatures_Amp']
+	temperatures_Ph = backup['temperatures_Ph']
+	energies_true = backup['energies_true']
+	order_parameters = backup['order_parameters']
 	distances = backup['distance']
 	numb_of_part = backup['numb_of_part']
 	curr_traj = backup['curr_traj']
@@ -148,9 +156,9 @@ else:
 
 def save_backup(backup_id):
 	if backup_id == 0:
-		init_conds =  [lyap.X[:,:,:,0], lyap.Y[:,:,:,0], lyap.X1[:,:,:,0], lyap.Y1[:,:,:,0]]
+		init_conds =  [lyap.X[:,:,:,0], lyap.Y[:,:,:,0]]
 	else:
-		init_conds =  [lyap.X[:,:,:,lyap.icurr], lyap.Y[:,:,:,lyap.icurr], lyap.X1[:,:,:,lyap.icurr], lyap.Y1[:,:,:,lyap.icurr]]
+		init_conds =  [lyap.X[:,:,:,lyap.icurr], lyap.Y[:,:,:,lyap.icurr]]
 
 
 	np.savez_compressed(vis_backup.filename('_BACKUP_PRESENT_' + str(my_id)),
@@ -161,7 +169,12 @@ def save_backup(backup_id):
 	                 eff_nonl=effective_nonlinearity,
 	                 init_conds=init_conds,
 			         numb_of_part=numb_of_part, energies=energies,
-			         pert_seeds=perturb_seeds,
+					temperatures = temperatures,
+					temperatures_Amp = temperatures_Amp,
+					temperatures_Ph = temperatures_Ph,
+					energies_true = energies_true,
+					order_parameters = order_parameters,
+			          pert_seeds=perturb_seeds,
 			         chosen=chosen_trajs, step=lyap.step, time=lyap.time, n_steps=lyap.n_steps,
 			         my_info=[seed_from, seed_to, my_id], needed_trajs=needed_trajs,
 			         checksum=lyap.consistency_checksum, error_code=lyap.error_code,
@@ -189,12 +202,27 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 			backup, backup_id, backup_present = try_find_backup()
 			if backup_present:
 				print 'Backup found: ', backup_id, k_traj
-				err = init_instability(lyap, traj_seed, from_backup=True, init_conds=backup['init_conds'])
+				# err = init_instability(lyap, traj_seed, from_backup=True, init_conds=backup['init_conds'])
+				# lyap.traj_seed = traj_seed
+				# lyap.pert_seed = pert_seed
+				#
+				np.random.seed()
+				traj_seed = np.random.randint(100000)
 				lyap.traj_seed = traj_seed
 				lyap.pert_seed = pert_seed
+				err = 1
+				while err == 1:
+					traj_seed = np.random.randint(100000)
+					print "SEED: ", traj_seed
+					err = init_instability(lyap, traj_seed)
+					if err == 1:
+						print 'Bad trajectory! ', i_traj
+				print 'Good trajectory found!'
+
 			else:
 				print 'No backup found, going to find a track'
 				np.random.seed()
+				traj_seed = np.random.randint(100000)
 				lyap.traj_seed = traj_seed
 				lyap.pert_seed = pert_seed
 				err = 1
@@ -210,9 +238,67 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 				save_backup(k_traj)
 				continue
 
-			lyap.n_steps = int(time_backup / step)
-			lyap.time = time_backup
-			lyap.run_dynamics(no_pert=True)
+			lyap.n_steps = int(0.5/step)
+			lyap.run_dynamics(no_pert=False)
+			
+			x0 = lyap.X[:,:,:,0]
+			y0 = lyap.Y[:,:,:,0]
+			
+			
+			init_conds = []
+			init_energies = []
+			lyap.run_relaxation(E_desired=1e+7, N_max=50)
+			for i in xrange(lyap.n_steps):
+				init_energies.append(lyap.energy[i])
+				init_conds.append((lyap.X[:,:,:,i].copy(),lyap.Y[:,:,:,i].copy()))
+
+			#E_max = lyap.calc_energy_XY(lyap.X[:,:,:,0],lyap.Y[:,:,:,0], 0)
+			lyap.set_init_XY(x0, y0)
+			lyap.run_relaxation(E_desired=-1e+7, N_max=50)
+			for i in xrange(lyap.n_steps):
+				init_energies.append(lyap.energy[i])
+				init_conds.append((lyap.X[:,:,:,i].copy(),lyap.Y[:,:,:,i].copy()))
+			init_energies = np.array(init_energies)
+			E_max = np.max(init_energies)
+			E_min = np.min(init_energies)
+			isort_en = np.argsort(init_energies)
+			init_energies = init_energies[isort_en]
+			#init_conds = init_conds[isort_en]
+			
+			#E_min = lyap.calc_energy_XY(lyap.X[:,:,:,0],lyap.Y[:,:,:,0], 0)
+
+			E_min_all = -5 * 8000
+			E_max_all = 8 * 8000
+
+			print E_min, E_max
+
+			Energies = np.linspace(E_min_all, E_max_all, num=70)
+			energy_i = np.zeros(Energies.shape[0])
+			order_parameter_i = np.zeros(Energies.shape[0])
+			temperature_i = np.zeros(Energies.shape[0])
+			temperature_Amp_i = np.zeros(Energies.shape[0])
+			temperature_Ph_i = np.zeros(Energies.shape[0])
+
+			for j in np.nonzero(np.logical_and(Energies > E_min, Energies < E_max))[0]:#xrange(Energies.shape[0]):
+				print 'Energy %f' % Energies[j]
+				i_en = np.nonzero(init_energies >= Energies[j])[0][0]
+				lyap.set_init_XY(init_conds[isort_en[i_en]][0], init_conds[isort_en[i_en]][1])
+				#lyap.set_init_XY(x0, y0)
+				#lyap.run_relaxation(E_desired=Energies[j], N_max=100)
+				#lyap.run_quench(E_desired=Energies[j])
+				lyap.n_steps = int(0.5/step)
+				
+				lyap.run_dynamics(no_pert=False)
+				
+				energy_i[j] = lyap.calc_energy_XY(lyap.X[:,:,:,lyap.n_steps - 1],lyap.Y[:,:,:,lyap.n_steps - 1], 0)
+				T, T_Amp, T_Ph = lyap.calc_numerical_temperature(lyap.X[:,:,:,lyap.n_steps - 1],lyap.Y[:,:,:,lyap.n_steps - 1], N_samples=5000)
+				order_parameter_i[j] = np.sqrt(np.sum(lyap.X[:,:,:,lyap.n_steps - 1]) ** 2 + np.sum(lyap.Y[:,:,:,lyap.n_steps - 1]) ** 2)
+				temperature_i[j] = T
+				temperature_Amp_i[j] = T_Amp
+				temperature_Ph_i[j] = T_Ph	
+				print 'Temperature %f' % T
+				print 'Temperature Amp %f' % T_Amp
+				print 'Temperature Ph %f' % T_Ph
 
 			if backup_present:
 				print 'Backup present, go adding results'
@@ -222,6 +308,11 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 				chosen_trajs = backup['chosen']
 				effective_nonlinearity = backup['eff_nonl']
 				energies = backup['energies']
+				temperatures = backup['temperatures']
+				temperatures_Amp = backup['temperatures_Amp']
+				temperatures_Ph = backup['temperatures_Ph']
+				energies_true = backup['energies_true']
+				order_parameters = backup['order_parameters']
 				distances = backup['distance']
 				numb_of_part = backup['numb_of_part']
 				curr_traj = backup['curr_traj']
@@ -229,16 +320,29 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 				time_finished = backup['time_finished']
 				backup_id = backup['backup_id']
 
-				lmbdas = np.hstack((lmbdas, lyap.lambdas[:-1]))
-				lmbdas_no_regr =  np.hstack((lmbdas_no_regr, lyap.lambdas_no_regr[:-1]))
+				if len(energies) == 0:
+					energies_true = energy_i
+					temperatures = temperature_i
+					temperatures_Amp = temperature_Amp_i
+					temperatures_Ph = temperature_Ph_i
+					order_parameters = order_parameter_i
+				else:
+					energies_true = np.vstack((energies_true, energy_i))
+					temperatures = np.vstack((temperatures, temperature_i))
+					temperatures_Amp = np.vstack((temperatures_Amp, temperature_Amp_i))
+					temperatures_Ph = np.vstack((temperatures_Ph, temperature_Ph_i))
+					order_parameters = np.vstack((order_parameters, order_parameter_i))
+				#
+				# lmbdas = np.hstack((lmbdas, lyap.lambdas[:-1]))
+				# lmbdas_no_regr =  np.hstack((lmbdas_no_regr, lyap.lambdas_no_regr[:-1]))
 				# chosen_trajs.append((traj_seed, pert_seed))
-				effective_nonlinearity = np.hstack((effective_nonlinearity, lyap.effective_nonlinearity))
+				# effective_nonlinearity = np.hstack((effective_nonlinearity, lyap.effective_nonlinearity))
 				energies = np.hstack((energies, lyap.energy))
-				print energies
-				distances = np.hstack((distances, lyap.distance))
+				# print energies
+				# distances = np.hstack((distances, lyap.distance))
 				numb_of_part = np.hstack((numb_of_part, lyap.number_of_particles))
-				print lyap.lambdas
-				print lyap.lambdas_no_regr
+				# print lyap.lambdas
+				# print lyap.lambdas_no_regr
 
 				save_backup(k_traj)
 				# np.savez_compressed(vis_backup.filename(my_id),
@@ -280,6 +384,11 @@ np.savez_compressed(vis.filename(my_id),
          lambdas=lmbdas, lambdas_no_regr=lmbdas_no_regr,
          eff_nonl=effective_nonlinearity,
          numb_of_part=numb_of_part, energies=energies,
+        temperatures = temperatures,
+	temperatures_Amp = temperatures_Amp,
+	temperatures_Ph = temperatures_Ph,
+		energies_true = energies_true,
+		order_parameters = order_parameters,
          chosen=chosen_trajs, step=lyap.step, time=lyap.time, n_steps=lyap.n_steps,
          my_info=[seed_from, seed_to, my_id], needed_trajs=needed_trajs,
          checksum=lyap.consistency_checksum, error_code=lyap.error_code,
