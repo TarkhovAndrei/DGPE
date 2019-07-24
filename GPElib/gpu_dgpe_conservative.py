@@ -13,19 +13,19 @@ class DGPE_ODE(torch.nn.Module):
 				 ):
 		super(DGPE_ODE, self).__init__()
 
-		self.J = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + J, requires_grad=False).to(device))
-		self.anisotropy = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + anisotropy, requires_grad=False).to(device))
+		self.J = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + J).to(device), requires_grad=False)
+		self.anisotropy = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + anisotropy).to(device), requires_grad=False)
 
-		self.gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + gamma, requires_grad=False).to(device))
+		self.gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + gamma).to(device), requires_grad=False)
 
 		# self.torch_N_wells = torch.tensor(self.N_wells, tf.int64)
 
-		self.nn_idx_1 = torch.nn.Parameter(torch.tensor(nn_idx_1, dtype=torch.int64, requires_grad=False).to(device))
-		self.nn_idx_2 = torch.nn.Parameter(torch.tensor(nn_idx_2, dtype=torch.int64, requires_grad=False).to(device))
-		self.nn_idy_1 = torch.nn.Parameter(torch.tensor(nn_idy_1, dtype=torch.int64, requires_grad=False).to(device))
-		self.nn_idy_2 = torch.nn.Parameter(torch.tensor(nn_idy_2, dtype=torch.int64, requires_grad=False).to(device))
-		self.nn_idz_1 = torch.nn.Parameter(torch.tensor(nn_idz_1, dtype=torch.int64, requires_grad=False).to(device))
-		self.nn_idz_2 = torch.nn.Parameter(torch.tensor(nn_idz_2, dtype=torch.int64, requires_grad=False).to(device))
+		self.nn_idx_1 = torch.nn.Parameter(torch.tensor(nn_idx_1, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idx_2 = torch.nn.Parameter(torch.tensor(nn_idx_2, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idy_1 = torch.nn.Parameter(torch.tensor(nn_idy_1, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idy_2 = torch.nn.Parameter(torch.tensor(nn_idy_2, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idz_1 = torch.nn.Parameter(torch.tensor(nn_idz_1, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idz_2 = torch.nn.Parameter(torch.tensor(nn_idz_2, dtype=torch.int64).to(device), requires_grad=False)
 
 		# self.torch_first_half = torch.nn.Parameter(torch.tensor(np.arange(N_wells), dtype=torch.int64).to(device))
 		# self.torch_second_half = torch.nn.Parameter(torch.tensor(np.arange(N_wells, 2 * N_wells), dtype=torch.int64).to(device))
@@ -45,12 +45,12 @@ class DGPE_ODE(torch.nn.Module):
 
 		# self.zero = torch.nn.Parameter(torch.tensor(np.zeros(N_wells)).to(device))
 
-		self.h_dis_x_flat = torch.nn.Parameter(torch.tensor(h_dis_x_flat, requires_grad=False).to(device))
-		self.h_dis_y_flat = torch.nn.Parameter(torch.tensor(h_dis_y_flat, requires_grad=False).to(device))
+		self.h_dis_x_flat = torch.nn.Parameter(torch.tensor(h_dis_x_flat).to(device), requires_grad=False)
+		self.h_dis_y_flat = torch.nn.Parameter(torch.tensor(h_dis_y_flat).to(device), requires_grad=False)
 
-		self.beta_disorder_array_flattened = torch.nn.Parameter(torch.tensor(beta_disorder_array_flattened, requires_grad=False).to(device))
-		self.beta = torch.nn.Parameter(torch.tensor(beta_flat, requires_grad=False).to(device))
-		self.e_disorder = torch.nn.Parameter(torch.tensor(e_disorder_flat, requires_grad=False).to(device))
+		self.beta_disorder_array_flattened = torch.nn.Parameter(torch.tensor(beta_disorder_array_flattened).to(device), requires_grad=False)
+		self.beta = torch.nn.Parameter(torch.tensor(beta_flat).to(device), requires_grad=False)
+		self.e_disorder = torch.nn.Parameter(torch.tensor(e_disorder_flat).to(device), requires_grad=False)
 
 	def forward(self, t, y):
 
