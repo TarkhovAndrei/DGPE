@@ -8,7 +8,9 @@ The standard routine for the largest Lyapunov exponent calculation is implemente
 as well as a custom Loschmidt echo (imperfect time-reversal) routine, for the lattice of coupled Bose-Einstein condensates.
 
 The code was used for obtaining numerical results for the papers:
+
 Andrei E. Tarkhov, Sandro Wimberger, and Boris V. Fine, Phys. Rev. A 96, 023624 (2017), https://doi.org/10.1103/PhysRevA.96.023624
+
 Andrei E. Tarkhov, Boris V. Fine, New J. Phys. 20 123021 (2018), https://doi.org/10.1088/1367-2630/aaf0b6
 
 -----------------------------------------
