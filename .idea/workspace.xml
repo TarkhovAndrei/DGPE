@@ -65,8 +65,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-8">
-              <caret line="1534" lean-forward="true" selection-start-line="1534" selection-end-line="1534" />
+            <state relative-caret-position="537">
+              <caret line="1572" column="39" lean-forward="true" selection-start-line="1572" selection-start-column="39" selection-end-line="1572" selection-end-column="39" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -543,8 +543,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-8">
-          <caret line="1534" lean-forward="true" selection-start-line="1534" selection-end-line="1534" />
+        <state relative-caret-position="537">
+          <caret line="1572" column="39" lean-forward="true" selection-start-line="1572" selection-start-column="39" selection-end-line="1572" selection-end-column="39" />
           <folding>
             <element signature="e#1580#1598#0" expanded="true" />
           </folding>

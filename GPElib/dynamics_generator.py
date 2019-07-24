@@ -1570,7 +1570,7 @@ class DynamicsGenerator(object):
 		# self.torch_dpsi[self.torch_second_half].add_(- self.torch_beta *
 		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x)
 
-		return self.torch_dpsi
+		return self.torch_dpsi.detach()
 
 	def RelaxationXY_fast(self, time=0.):
 		self.dpsi *= 0
