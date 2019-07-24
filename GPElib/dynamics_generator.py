@@ -689,8 +689,9 @@ class DynamicsGenerator(object):
 
 		self.temperature_dependent_rate = False
 
+		self.E_desired = E_desired
+		
 		if temperature_dependent_rate:
-			self.E_desired = E_desired
 			self.temperature_dependent_rate = True
 			self.gamma_reduction = 1./(Ecurr - self.E_desired)
 
@@ -753,7 +754,7 @@ class DynamicsGenerator(object):
 			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
 			self.energy = self.calc_energy_XY_global(ODE_result)
 			self.number_of_particles = self.calc_nop_XY_global(ODE_result)
-			idx_desired = np.nonzero((self.energy[:-1] - E_desired) * (self.energy[1:] - E_desired) < 0)[0]
+			idx_desired = np.nonzero((self.energy[:-1] - self.E_desired) * (self.energy[1:] - self.E_desired) < 0)[0]
 			if len(idx_desired.shape) == 1:
 				self.n_steps = idx_desired
 			else:
