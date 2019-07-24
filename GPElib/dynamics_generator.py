@@ -40,6 +40,7 @@ import torchdiffeq
 from torch.autograd import Variable
 
 from .gpu_dgpe_conservative import DGPE_ODE
+from .gpu_dgpe_relaxation import DGPE_ODE_RELAXATION
 
 class DynamicsGenerator(object):
 	def __init__(self, **kwargs):
@@ -1110,14 +1111,22 @@ class DynamicsGenerator(object):
 			ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
 			self.T[:N_max] = ts
 
-			ODE_result_object = torchdiffeq.odeint(self.torch_Hamiltonian_with_Relaxation_XY_fast,
+			relaxational_ODE = DGPE_ODE_RELAXATION(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma,
+										self.nn_idx_1, self.nn_idx_2, self.nn_idy_1, self.nn_idy_2, self.nn_idz_1,
+										self.nn_idz_2,
+										self.h_dis_x_flat, self.h_dis_y_flat,
+										self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat,
+										self.E_desired, self.gamma_reduction)
+
+			ODE_result_object = torchdiffeq.odeint(relaxational_ODE,
+											# self.torch_Hamiltonian_with_Relaxation_XY_fast,
 												   torch.from_numpy(psi0).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 												   torch.from_numpy(ts).type(self.torch_FloatPrecision).to(self.torch_device),# dtype=self.torch_FloatPrecision),
 												   rtol=self.rtol,
 												   atol=self.atol
 												   )
 
-			ODE_result = ODE_result_object.cpu().numpy()
+			ODE_result = ODE_result_object.detach().cpu().numpy()
 
 		elif self.integrator == 'scipy':
 			psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
