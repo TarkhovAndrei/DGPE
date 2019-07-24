@@ -1,6 +1,5 @@
 '''
-Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -12,7 +11,7 @@ the citation of the present code shall be provided according to the rule:
 
     "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
     source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE
-    was used to obtain the presented results, 2017."
+    was used to obtain the presented results, 2019."
 
 2) The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
@@ -31,18 +30,18 @@ from .dynamics_generator import DynamicsGenerator
 class TwoTrajsGenerator(DynamicsGenerator):
 	def __init__(self, **kwargs):
 		DynamicsGenerator.__init__(self, **kwargs)
-		self.RHO1 = np.zeros(self.N_tuple + (self.n_steps,), dtype=self.FloatPrecision)
-		self.THETA1 = np.zeros(self.N_tuple + (self.n_steps,), dtype=self.FloatPrecision)
-		self.X1 = np.zeros(self.N_tuple + (self.n_steps,), dtype=self.FloatPrecision)
-		self.Y1 = np.zeros(self.N_tuple + (self.n_steps,), dtype=self.FloatPrecision)
+		self.RHO1 = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
+		self.THETA1 = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
+		self.X1 = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
+		self.Y1 = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
 		self.energy1 = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.participation_rate1 = np.zeros(self.n_steps, dtype=self.FloatPrecision)
+		self.angular_momentum1 = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.effective_nonlinearity1 = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.histograms1 = {}
 		self.rho_histograms1 = {}
 
 		self.number_of_particles1 = np.zeros(self.n_steps, dtype=self.FloatPrecision)
-		self.distance = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.lambdas = []
 		self.lambdas_no_regr = []
 
@@ -54,6 +53,16 @@ class TwoTrajsGenerator(DynamicsGenerator):
 		self.X1[:,:,:,0] = x1.reshape(self.N_tuple)
 		self.Y1[:,:,:,0] = y1.reshape(self.N_tuple)
 		self.RHO1[:,:,:,0], self.THETA1[:,:,:,0] = self.from_XY_to_polar(self.X1[:,:,:,0], self.Y1[:,:,:,0])
+
+	def set_constants_of_motion_local(self, i, inext):
+		DynamicsGenerator.set_constants_of_motion_local(self, i, inext)
+		self.energy1[i], self.number_of_particles1[i], self.angular_momentum1[i] = self.calc_constants_of_motion_local(self.RHO1[:,:,:,inext], self.THETA1[:,:,:,inext],
+																										self.X1[:,:,:,inext], self.Y1[:,:,:,inext])
+		self.participation_rate1[i] = np.sum(self.RHO1[:,:,:,inext] ** 4, axis=(0,1,2)) / (np.sum(self.RHO1[:,:,:,inext] ** 2, axis=(0,1,2)) ** 2)
+		self.effective_nonlinearity1[i] = self.beta * self.participation_rate1[i] / self.N_wells
+		# for iwell in self.wells_indices:
+		# 	self.histograms1[iwell] = np.histogram2d(np.float64(self.X1[iwell]), np.float64(self.Y1[iwell]), bins=100)
+		# 	self.rho_histograms1[iwell] = np.histogram(np.float64(self.RHO1[iwell] ** 2), bins=100)
 
 	def set_constants_of_motion(self):
 		DynamicsGenerator.set_constants_of_motion(self)

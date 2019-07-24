@@ -1,32 +1,5 @@
 '''
-<<<<<<< HEAD
-Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following 2 conditions:
-
-1) If any part of the present source code is used for any purposes with subsequent publication of obtained results,
-the GitHub repository shall be cited in all publications, according to the citation rule:
-	"Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-	 source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE, 2017."
-
-2) The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-=======
-Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -38,7 +11,7 @@ the citation of the present code shall be provided according to the rule:
 
     "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
     source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE
-    was used to obtain the presented results, 2017."
+    was used to obtain the presented results, 2019."
 
 2) The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
@@ -48,7 +21,6 @@ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PA
 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
->>>>>>> 4972cf8dfc01647229d5501ce4d8ea85c2e54f86
 '''
 
 import numpy as np
@@ -85,16 +57,16 @@ else:
 needed_trajs = np.arange(seed_from, seed_to)
 
 # time = 100.
-time = 100.
+time = 70.
 # step = 0.00015625
 step = 0.001
 N_wells = 100
 W = 0.
 
 inst = InstabilityGenerator(N_part_per_well=100,
-                            # N_wells=(10,1,1), dimensionality=1,
+                            N_wells=(70,1,1), dimensionality=1,
                             # N_wells=(10,10,1), dimensionality=2,
-                            N_wells=(4,4,4), dimensionality=3,
+                            # N_wells=(4,4,4), dimensionality=3,
                             disorder_seed=53, time=time, step=step,
                             perturb_hamiltonian=False,
                             error_J=0, error_beta=0, error_disorder=0)
@@ -121,9 +93,14 @@ all_y1 = {}
 for ii in needed_trajs:
 	inst.traj_seed = ii
 	np.random.seed(ii)
-	err = init_instability(inst, ii)
-	if err == 1:
-		print 'Bad trajectory! ', ii
+	err = 1
+	while err == 1:
+		traj_seed = np.random.randint(100000)
+		print "SEED: ", traj_seed
+		err = init_instability(inst, traj_seed)
+		if err == 1:
+			print 'Bad trajectory! ', ii
+
 	inst.set_pert_seed(ii)
 	inst.run_dynamics()
 	answers.append(inst.distance)
@@ -144,13 +121,13 @@ for ii in needed_trajs:
 # 	         distance=inst.distance,
 # 	         x=inst.X, y=inst.Y, x1=inst.X1, y1=inst.Y1)
 
-T = np.linspace(0, inst.time, inst.n_steps)
-for ii in xrange(needed_trajs.shape[0]):
-	plt.semilogy(T, dist[ii])
+# T = np.linspace(0, inst.time, inst.n_steps)
+# for ii in xrange(needed_trajs.shape[0]):
+# 	plt.semilogy(T, dist[ii])
 
-plt.savefig(vis.HOMEDIR + 'pics/Inst_' + unique_id + '_' + str(my_id)+'.png', format='png', dpi=100)
+# plt.savefig(vis.HOMEDIR + 'pics/Inst_' + unique_id + '_' + str(my_id)+'.png', format='png', dpi=100)
 
-np.savez(vis.filename(my_id),
+np.savez_compressed(vis.filename(my_id),
          x=all_x, y=all_y, x1=all_x1, y1=all_y1,
          data=answers, lambdas=lambdas, lambdas_no_regr=lambdas_no_regr,
          polar=polarisation, polar1=polarisation1,

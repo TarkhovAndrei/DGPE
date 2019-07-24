@@ -1,6 +1,5 @@
 '''
-Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -12,7 +11,7 @@ the citation of the present code shall be provided according to the rule:
 
     "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
     source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE
-    was used to obtain the presented results, 2017."
+    was used to obtain the presented results, 2019."
 
 2) The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
@@ -35,9 +34,19 @@ class DynamicsGenerator(object):
 		self.J = kwargs.get('J', 1.0)
 		self.beta = kwargs.get('beta', 0.01)
 		self.W = kwargs.get('W', 0.)
-
 		self.N_tuple = kwargs.get('N_wells', 10)
 		self.dimensionality = kwargs.get('dimensionality', 1)
+		self.step = kwargs.get('step', 5.7e-05)
+		self.time = kwargs.get('time', 1.4 * 50)
+
+		self.n_steps = kwargs.get('n_steps', int(self.time / self.step))
+
+		self.calculation_type = kwargs.get('calculation_type', 'lyap')
+		if self.calculation_type == 'lyap':
+			self.n_steps_savings = 2
+		else:
+			self.n_steps_savings = self.n_steps
+
 		self.Nx = 1
 		self.Ny = 1
 		self.Nz = 1
@@ -59,6 +68,11 @@ class DynamicsGenerator(object):
 		print "Geometry: ", self.N_tuple
 		self.N_wells = self.Nx * self.Ny * self.Nz
 		self.wells_indices = [(i,j,k) for i in xrange(self.Nx) for j in xrange(self.Ny) for k in xrange(self.Nz)]
+		self.wells_index_tuple_to_num = dict()
+		for i in xrange(self.Nx):
+			for j in xrange(self.Ny):
+				for k in xrange(self.Nz):
+					self.wells_index_tuple_to_num[(i,j,k)] = i + self.Ny * (j + self.Nz * k)
 
 		#Seeds
 		self.disorder_seed = kwargs.get('disorder_seed', 78)
@@ -69,12 +83,7 @@ class DynamicsGenerator(object):
 
 		self.N_part = kwargs.get('N_part_per_well', 100000)
 		self.N_part *= self.N_wells
-		self.step = kwargs.get('step', 5.7e-05)
 		self.tau_char = kwargs.get('tau_char', 1.0 / np.sqrt(3. * self.beta * self.J * self.N_part/self.N_wells))
-		self.time = kwargs.get('time', 1.4 * 50)
-		self.time *= self.tau_char
-		self.n_steps = kwargs.get('n_steps', int(self.time / self.step))
-
 		self.FloatPrecision = kwargs.get('FloatPrecision', np.float128)
 
 		self.E_calibr = kwargs.get('E_calibr', 0)
@@ -86,15 +95,19 @@ class DynamicsGenerator(object):
 		self.energy = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.participation_rate = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.effective_nonlinearity = np.zeros(self.n_steps, dtype=self.FloatPrecision)
+		self.angular_momentum = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.number_of_particles = np.zeros(self.n_steps, dtype=self.FloatPrecision)
+		self.distance = np.zeros(self.n_steps, dtype=self.FloatPrecision)
+
 		self.histograms = {}
 		self.rho_histograms = {}
 
 		self.T = np.linspace(0, self.time, self.n_steps)
-		self.RHO = np.zeros(self.N_tuple + (self.n_steps,), dtype=self.FloatPrecision)
-		self.THETA = np.zeros(self.N_tuple + (self.n_steps,), dtype=self.FloatPrecision)
-		self.X = np.zeros(self.N_tuple + (self.n_steps,), dtype=self.FloatPrecision)
-		self.Y = np.zeros(self.N_tuple + (self.n_steps,), dtype=self.FloatPrecision)
+		self.RHO = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
+		self.THETA = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
+		self.X = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
+		self.Y = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
+
 		self.consistency_checksum = 0
 		self.error_code = ""
 		self.configure(kwargs)
@@ -278,36 +291,36 @@ class DynamicsGenerator(object):
 
 		return np.hstack((dX.flatten(),dY.flatten()))
 
-	def Jacobian(self, psi, t):
-		# X - RHO, Y - THETA
-		X0 = np.array(psi[:self.N_wells], dtype=self.FloatPrecision)
-		Y0 = np.array(psi[self.N_wells:], dtype=self.FloatPrecision)
+	def index_tuple_to_num(self, idx):
+		return idx[0] + self.N_tuple[1] * (idx[1] + idx[2] * self.N_tuple[2])
 
-		dFdXY = np.zeros((2 * self.N_wells, 2 * self.N_wells), dtype=self.FloatPrecision)
-		for i in xrange(X0.shape[0]):
+	def JacobianXY(self, X, Y):
+		X0 = np.array(X)
+		Y0 = np.array(Y)
+
+		dFdXY = np.zeros((2 * self.N_wells, 2 * self.N_wells))
+
+		for itup in self.wells_indices:
+			i = self.wells_index_tuple_to_num[itup]
 			# dXi / dXj
-			dFdXY[i,self.NN(i-1)] += - self.J * np.cos(Y0[self.NN(i-1)] - Y0[i])
-			dFdXY[i,self.NN(i+1)] += - self.J * np.cos(Y0[self.NN(i+1)] - Y0[i])
+			dFdXY[i, i] += 2. * self.beta * X0[itup] * Y0[itup]
 			# dXi / dYj
-			dFdXY[i,i+self.N_wells] += - self.J * (X0[self.NN(i-1)] * (np.sin(Y0[self.NN(i-1)] - Y0[i])) +
-			                             X0[self.NN(i+1)] * (np.sin(Y0[self.NN(i+1)] - Y0[i])))
-
-			dFdXY[i,self.NN(i+1)+self.N_wells] += self.J * (X0[self.NN(i+1)] * (np.sin(Y0[self.NN(i+1)] - Y0[i])))
-			dFdXY[i,self.NN(i-1)+self.N_wells] += self.J * (X0[self.NN(i-1)] * (np.sin(Y0[self.NN(i-1)] - Y0[i])))
+			dFdXY[i,i + self.N_wells] += self.beta * (X0[itup] ** 2 + 3. * Y0[itup] **2)
 
 			# dYi / dYj
-			dFdXY[i+self.N_wells,i+self.N_wells] += self.J * (X0[self.NN(i-1)]/X0[i] * (np.sin(Y0[self.NN(i-1)] - Y0[i])) +
-			                                   X0[self.NN(i+1)] / X0[i] * (np.sin(Y0[self.NN(i+1)] - Y0[i])))
-			dFdXY[i+self.N_wells,self.NN(i+1)+self.N_wells] += - self.J * (X0[self.NN(i+1)]/X0[i] * (np.sin(Y0[self.NN(i+1)] - Y0[i])))
-			dFdXY[i+self.N_wells,self.NN(i-1)+self.N_wells] += - self.J * (X0[self.NN(i-1)]/X0[i] * (np.sin(Y0[self.NN(i-1)] - Y0[i])))
+			dFdXY[i+ self.N_wells,i + self.N_wells] += - 2. * self.beta * X0[itup] * Y0[itup]
 			# dYi / dXj
-			dFdXY[i+self.N_wells,i] += - 2.0 * self.beta * X0[i] - self.J * (
-				X0[self.NN(i-1)]/ (X0[i] ** 2) * (np.cos(Y0[self.NN(i-1)] - Y0[i])) +
-				X0[self.NN(i+1)] / (X0[i] ** 2) * (np.cos(Y0[self.NN(i+1)] - Y0[i])))
-			dFdXY[i+self.N_wells,self.NN(i+1)] += self.J * (1./X0[i] * (np.cos(Y0[self.NN(i+1)] - Y0[i])))
-			dFdXY[i+self.N_wells,self.NN(i-1)] += self.J * (1./X0[i] * (np.cos(Y0[self.NN(i-1)] - Y0[i])))
+			dFdXY[i+ self.N_wells,i] += - self.beta * (3. * X0[itup] ** 2 + Y0[itup] **2)
 
-		return dFdXY
+			for jtup in self.nearest_neighbours(itup):
+				j = self.wells_index_tuple_to_num[jtup]
+				dFdXY[i, j + self.N_wells] += -self.J
+				dFdXY[i+ self.N_wells, j] += self.J
+
+		eig_vals = np.linalg.eigvals(dFdXY)
+
+		return dFdXY, eig_vals
+
 
 	def calc_constants_of_motion(self, RHO, THETA, X, Y):
 		number_of_particles = np.sum(RHO ** 2, axis=(0,1,2))
@@ -324,6 +337,32 @@ class DynamicsGenerator(object):
 			angular_momentum += - 2 * self.J * (X[j] * Y[k] - Y[j] * X[k])
 
 		return energy, number_of_particles, angular_momentum
+
+	def calc_constants_of_motion_local(self, RHO, THETA, X, Y):
+		number_of_particles = np.sum(RHO ** 2, axis=(0,1,2))
+		energy = 0.#np.zeros(self.n_steps, dtype=self.FloatPrecision)
+		angular_momentum = 0.#np.zeros(self.n_steps, dtype=self.FloatPrecision)
+		for j in self.wells_indices:
+			energy += (self.beta/2. * np.abs(RHO[j]**4) +
+			           self.e_disorder[j] * np.abs(RHO[j]**2))
+			for k in self.nearest_neighbours(j):
+				energy += (- self.J * (RHO[k] * RHO[j] * np.cos(THETA[k] - THETA[j])))
+			# angular_momentum += - 2 * self.J * (X[:,j] * (0*Y[:,self.NN(j-1)] + Y[:,self.NN(j+1)]) - Y[:,j] * (0*X[:,self.NN(j-1)] + X[:,self.NN(j+1)]))
+			# angular_momentum += - 2 * self.J * (X[:,j] * (0*Y[:,self.NN(j-1)] + Y[:,self.NN(j+1)]) - 0*Y[:,j] * (0*X[:,self.NN(j-1)] + X[:,self.NN(j+1)]))
+			# angular_momentum += - 2 * self.J * (X[:,j] * (1./3*X[:,j] ** 2 + Y[:,j] ** 2))
+			angular_momentum += - 2 * self.J * (X[j] * Y[k] - Y[j] * X[k])
+
+		return energy, number_of_particles, angular_momentum
+
+	def set_constants_of_motion_local(self, i, inext):
+		self.energy[i], self.number_of_particles[i], self.angular_momentum[i] = self.calc_constants_of_motion_local(self.RHO[:,:,:,inext], self.THETA[:,:,:,inext],
+																											  self.X[:,:,:,inext], self.Y[:,:,:,inext])
+		# for i in self.wells_indices:
+		# 	self.histograms[i] = np.histogram2d(np.float64(self.X[i]), np.float64(self.Y[i]), bins=100)
+		# 	self.rho_histograms[i] = np.histogram(np.float64(self.RHO[i] ** 2), bins=100)
+
+		self.participation_rate[i] = np.sum(self.RHO[:,:,:,inext] ** 4, axis=(0,1,2)) / (np.sum(self.RHO[:,:,:,inext] ** 2, axis=(0,1,2)) ** 2)
+		self.effective_nonlinearity[i] = self.beta * (self.participation_rate[i]) / self.N_wells
 
 	def set_constants_of_motion(self):
 		self.energy, self.number_of_particles, self.angular_momentum = self.calc_constants_of_motion(self.RHO, self.THETA, self.X, self.Y)
@@ -372,7 +411,70 @@ class DynamicsGenerator(object):
 		self.error_code += code
 		self.consistency_checksum = 1
 
-	def E_const_perturbation_XY(self, x0, y0, delta):
+	def E_const_perturbation_XY(self, x0, y0, delta, degrees_of_freedom=30):
+		bnds = np.hstack((x0.flatten(), y0.flatten()))
+
+		dof_idx = np.arange(bnds.shape[0])
+		if bnds.shape[0] > degrees_of_freedom:
+			np.random.shuffle(dof_idx)
+			dof_idx = np.sort(dof_idx[:degrees_of_freedom])
+
+		x_err = 1. * delta #0.01 * x0
+		y_err = 1. * delta #0.01 * y0
+		np.random.seed()
+		x_next = x0 + x_err * np.random.randn(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
+		y_next = y0 + y_err * np.random.randn(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
+		zero_app = np.hstack((x_next.flatten(), y_next.flatten()))
+
+		def get_x_full(xsh, zero_app, dof_idx):
+			x = zero_app.copy()
+			x[dof_idx] = xsh.copy()
+			return x
+
+		fun = lambda x: (((self.calc_energy_XY(get_x_full(x, zero_app, dof_idx)[:self.N_wells].reshape(self.N_tuple),
+		                                       get_x_full(x, zero_app, dof_idx)[self.N_wells:].reshape(self.N_tuple),
+		                                       self.E_calibr))/self.E_calibr) ** 2 +
+		                 (self.calc_number_of_particles_XY(get_x_full(x, zero_app, dof_idx)[:self.N_wells].reshape(self.N_tuple),
+		                                                   get_x_full(x, zero_app, dof_idx)[self.N_wells:].reshape(self.N_tuple)
+		                                                   )/self.N_part) ** 2)
+
+		zero_app_cut = zero_app.copy()[dof_idx]
+		bnds_cut = bnds.copy()[dof_idx]
+		opt = minimize(fun, zero_app_cut,
+		               bounds=[(xi - 1.0 * delta, xi + 1.0 * delta) for xi in bnds_cut],
+	                    options={'ftol':self.FTOL})
+
+		col = 0
+		while (col < 10) and ((opt.success == False) or
+			                      (np.abs(self.calc_energy_XY(get_x_full(opt.x, zero_app, dof_idx)[:self.N_wells].reshape(self.N_tuple),
+			                                                  get_x_full(opt.x, zero_app, dof_idx)[self.N_wells:].reshape(self.N_tuple),
+			                                                  self.E_calibr))/ self.E_calibr > self.E_eps) or
+			                      (np.abs(self.calc_number_of_particles_XY(get_x_full(opt.x, zero_app, dof_idx)[:self.N_wells].reshape(self.N_tuple),
+			                                                               get_x_full(opt.x, zero_app, dof_idx)[self.N_wells:].reshape(self.N_tuple))/self.N_part) > 0.01)):
+			np.random.seed()
+			zero_app = zero_app + delta * np.random.randn(zero_app.shape[0])
+			zero_app_cut = zero_app[dof_idx]
+			opt = minimize(fun, zero_app_cut,
+		               bounds=[(xi - 10.0 * delta, xi + 10.0 * delta) for xi in bnds_cut],
+		               options={'ftol':self.FTOL})
+			col += 1
+		x1 = get_x_full(opt.x, zero_app, dof_idx)[:self.N_wells].reshape(self.N_tuple)
+		y1 = get_x_full(opt.x, zero_app, dof_idx)[self.N_wells:].reshape(self.N_tuple)
+		if np.abs(self.calc_energy_XY(x1, y1, self.E_calibr) / self.E_calibr) > self.E_eps:
+			self.make_exception('Could not find a new initial on-shell state\n')
+		if np.abs((self.calc_number_of_particles_XY(x1,y1)) / self.N_part) > 0.01:
+			self.make_exception('Could not find a new initial state with the same number of particles\n')
+		# if np.abs(self.calc_traj_shift_XY(x1,y1, x0, y0) / delta) < 0.3:
+		# 	self.make_exception('Could not find a trajectory on such a distance\n')
+		# 	return x1, y1, 1
+		if col == 10:
+			self.make_exception('Exceeded number of attempts in E_const_perturbation\n')
+			return x1, y1, 1
+		else:
+			return x1, y1, 0
+
+
+	def E_const_perturbation_XY_not_optimal(self, x0, y0, delta):
 		bnds = np.hstack((x0.flatten(), y0.flatten()))
 		x_err = 1. * delta #0.01 * x0
 		y_err = 1. * delta #0.01 * y0

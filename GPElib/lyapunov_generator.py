@@ -1,6 +1,5 @@
 '''
-Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -12,7 +11,7 @@ the citation of the present code shall be provided according to the rule:
 
     "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
     source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE
-    was used to obtain the presented results, 2017."
+    was used to obtain the presented results, 2019."
 
 2) The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
@@ -52,37 +51,55 @@ class LyapunovGenerator(TwoTrajsGenerator):
 
 		self.instability_stops = [0]
 		self.distance_check = [self.calc_traj_shift_XY(self.X[:,:,:,0], self.Y[:,:,:,0], self.X1[:,:,:,0], self.Y1[:,:,:,0])]
+		self.distance[0] = self.calc_traj_shift_XY(self.X[:, :, :, 0], self.Y[:, :, :, 0], self.X1[:, :, :, 0],
+												   self.Y1[:, :, :, 0])
+
+		self.set_constants_of_motion_local(0, 0)
+
+		icurr = 0
+		inext = 1
 		for i in xrange(1, self.n_steps):
-			if (np.any(self.RHO[:,:,:,i-1] ** 2 < self.threshold_XY_to_polar) or (np.any(self.RHO1[:,:,:,i-1] ** 2 < self.threshold_XY_to_polar))):
-				psi = self.rk4_step_exp_XY(np.hstack((self.X[:,:,:,i-1].flatten(), self.Y[:,:,:,i-1].flatten())))
-				psi1 = self.rk4_step_exp_XY(np.hstack((self.X1[:,:,:,i-1].flatten(), self.Y1[:,:,:,i-1].flatten())))
-				self.X[:,:,:,i] = psi[:self.N_wells].reshape(self.N_tuple)
-				self.Y[:,:,:,i] = psi[self.N_wells:].reshape(self.N_tuple)
-				self.RHO[:,:,:,i], self.THETA[:,:,:,i] = self.from_XY_to_polar(self.X[:,:,:,i], self.Y[:,:,:,i])
-				self.X1[:,:,:,i] = psi1[:self.N_wells].reshape(self.N_tuple)
-				self.Y1[:,:,:,i] = psi1[self.N_wells:].reshape(self.N_tuple)
-				self.RHO1[:,:,:,i], self.THETA1[:,:,:,i] = self.from_XY_to_polar(self.X1[:,:,:,i], self.Y1[:,:,:,i])
+
+			if (np.any(self.RHO[:,:,:,icurr] ** 2 < self.threshold_XY_to_polar) or (np.any(self.RHO1[:,:,:,icurr] ** 2 < self.threshold_XY_to_polar))):
+				psi = self.rk4_step_exp_XY(np.hstack((self.X[:,:,:,icurr].flatten(), self.Y[:,:,:,icurr].flatten())))
+				psi1 = self.rk4_step_exp_XY(np.hstack((self.X1[:,:,:,icurr].flatten(), self.Y1[:,:,:,icurr].flatten())))
+				self.X[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
+				self.Y[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
+				self.RHO[:,:,:,inext], self.THETA[:,:,:,inext] = self.from_XY_to_polar(self.X[:,:,:,inext], self.Y[:,:,:,inext])
+				self.X1[:,:,:,inext] = psi1[:self.N_wells].reshape(self.N_tuple)
+				self.Y1[:,:,:,inext] = psi1[self.N_wells:].reshape(self.N_tuple)
+				self.RHO1[:,:,:,inext], self.THETA1[:,:,:,inext] = self.from_XY_to_polar(self.X1[:,:,:,inext], self.Y1[:,:,:,inext])
 				# self.X1[:,:,:,i], self.Y1[:,:,:,i] = self.from_polar_to_XY(self.RHO1[:,:,:,i], self.THETA1[:,:,:,i])
 			else:
-				psi = self.rk4_step_exp(np.hstack((self.RHO[:,:,:,i-1].flatten(), self.THETA[:,:,:,i-1].flatten())))
-				psi1 = self.rk4_step_exp(np.hstack((self.RHO1[:,:,:,i-1].flatten(), self.THETA1[:,:,:,i-1].flatten())))
-				self.RHO[:,:,:,i] = psi[:self.N_wells].reshape(self.N_tuple)
-				self.THETA[:,:,:,i] = psi[self.N_wells:].reshape(self.N_tuple)
-				self.X[:,:,:,i], self.Y[:,:,:,i] = self.from_polar_to_XY(self.RHO[:,:,:,i], self.THETA[:,:,:,i])
-				self.RHO1[:,:,:,i] = psi1[:self.N_wells].reshape(self.N_tuple)
-				self.THETA1[:,:,:,i] = psi1[self.N_wells:].reshape(self.N_tuple)
-				self.X1[:,:,:,i], self.Y1[:,:,:,i] = self.from_polar_to_XY(self.RHO1[:,:,:,i], self.THETA1[:,:,:,i])
-			dist = self.calc_traj_shift_XY(self.X[:,:,:,i], self.Y[:,:,:,i], self.X1[:,:,:,i], self.Y1[:,:,:,i])
+				psi = self.rk4_step_exp(np.hstack((self.RHO[:,:,:,icurr].flatten(), self.THETA[:,:,:,icurr].flatten())))
+				psi1 = self.rk4_step_exp(np.hstack((self.RHO1[:,:,:,icurr].flatten(), self.THETA1[:,:,:,icurr].flatten())))
+				self.RHO[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
+				self.THETA[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
+				self.X[:,:,:,inext], self.Y[:,:,:,inext] = self.from_polar_to_XY(self.RHO[:,:,:,inext], self.THETA[:,:,:,inext])
+				self.RHO1[:,:,:,inext] = psi1[:self.N_wells].reshape(self.N_tuple)
+				self.THETA1[:,:,:,inext] = psi1[self.N_wells:].reshape(self.N_tuple)
+				self.X1[:,:,:,inext], self.Y1[:,:,:,inext] = self.from_polar_to_XY(self.RHO1[:,:,:,inext], self.THETA1[:,:,:,inext])
+			dist = self.calc_traj_shift_XY(self.X[:,:,:,inext], self.Y[:,:,:,inext], self.X1[:,:,:,inext], self.Y1[:,:,:,inext])
+			self.distance[i] = dist
 			self.distance_check.append(dist)
 			# if (dist > self.Lyapunov_EPS) or (i - self.instability_stops[-1] > self.reset_steps_duration):
 			if (i - self.instability_stops[-1] > self.reset_steps_duration):
-				self.X1[:,:,:,i], self.Y1[:,:,:,i] = self.reset_perturbation_XY(self.X[:,:,:,i], self.Y[:,:,:,i], self.X1[:,:,:,i], self.Y1[:,:,:,i])
-				self.RHO1[:,:,:,i], self.THETA1[:,:,:,i] = self.from_XY_to_polar(self.X1[:,:,:,i], self.Y1[:,:,:,i])
+				self.X1[:,:,:,inext], self.Y1[:,:,:,inext] = self.reset_perturbation_XY(self.X[:,:,:,inext], self.Y[:,:,:,inext], self.X1[:,:,:,inext], self.Y1[:,:,:,inext])
+				self.RHO1[:,:,:,inext], self.THETA1[:,:,:,inext] = self.from_XY_to_polar(self.X1[:,:,:,inext], self.Y1[:,:,:,inext])
 				self.instability_stops.append(i)
+			self.set_constants_of_motion_local(i, inext)
+
+			if self.calculation_type == 'lyap':
+				icurr = 1 - icurr
+				inext = 1 - inext
+			else:
+				icurr = icurr + 1
+				inext = inext + 1
+
 		if self.instability_stops[-1] != self.n_steps:
 			self.instability_stops.append(self.n_steps)
-		self.set_constants_of_motion()
-		self.distance = self.calc_traj_shift_matrix_cartesian_XY(self.X, self.Y, self.X1, self.Y1)
+		# self.distance = self.calc_traj_shift_matrix_cartesian_XY(self.X, self.Y, self.X1, self.Y1)
+
 		if (np.abs(np.max(np.abs(self.energy - self.E_calibr)) / self.E_calibr) > 0.01) or (np.abs(np.max(np.abs(self.energy1 - self.E_calibr)) / self.E_calibr) > 0.01):
 			self.make_exception('Energy is not conserved during the dynamics\n')
 		if (np.abs(np.max(np.abs(self.number_of_particles - self.N_part)) / self.N_part) > 0.01) or (np.abs(np.max(np.abs(self.number_of_particles1 - self.N_part)) / self.N_part) > 0.01):
