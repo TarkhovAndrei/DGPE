@@ -1,231 +1,130 @@
 import torch
-import torchdiffeq
-from torch.autograd import Variable
+import numpy as np
+# import torchdiffeq
+# from torch.autograd import Variable
 
 
-class DGPE_ODE(torch.nn.Module):
+class DGPE_ODE_RELAXATION(torch.nn.Module):
 
-    def __init__(self, device):
-        super(DGPE_ODE, self).__init__()
+	def __init__(self, device, N_wells, J, anisotropy, gamma,
+				 nn_idx_1, nn_idx_2, nn_idy_1, nn_idy_2, nn_idz_1, nn_idz_2,
+				 h_dis_x_flat, h_dis_y_flat,
+				 beta_disorder_array_flattened, beta_flat, e_disorder_flat,
+				 E_desired, gamma_reduction
+				 ):
+		super(DGPE_ODE_RELAXATION, self).__init__()
 
-        self.a = torch.nn.Parameter(torch.tensor(0.2).to(device))
-        self.b = torch.nn.Parameter(torch.tensor(3.0).to(device))
+		self.J = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + J).to(device), requires_grad=False)
+		self.anisotropy = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + anisotropy).to(device), requires_grad=False)
 
-		self.torch_FloatPrecision = kwargs.get('torch_FloatPrecision', torch.float64)
+		self.gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + gamma).to(device), requires_grad=False)
 
-		self.torch_gpu_id = kwargs.get('gpu_id', 0)
-		self.torch_device = torch.device('cuda:' + str(self.torch_gpu_id)
-								   if torch.cuda.is_available() else 'cpu')
+		self.nn_idx_1 = torch.nn.Parameter(torch.tensor(nn_idx_1, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idx_2 = torch.nn.Parameter(torch.tensor(nn_idx_2, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idy_1 = torch.nn.Parameter(torch.tensor(nn_idy_1, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idy_2 = torch.nn.Parameter(torch.tensor(nn_idy_2, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idz_1 = torch.nn.Parameter(torch.tensor(nn_idz_1, dtype=torch.int64).to(device), requires_grad=False)
+		self.nn_idz_2 = torch.nn.Parameter(torch.tensor(nn_idz_2, dtype=torch.int64).to(device), requires_grad=False)
 
-		# self.tf_J = tf.placeholder(self.tf_FloatPrecision, name='J')
-		# self.tf_anisotropy = tf.placeholder(self.tf_FloatPrecision, name='anisotropy')
+		self.N_wells = torch.nn.Parameter(torch.tensor(N_wells, dtype=torch.int64).to(device), requires_grad=False)
 
-		self.torch_J = torch.as_tensor(np.zeros(self.N_wells) + self.J, dtype=self.torch_FloatPrecision, device=self.torch_device)
-		self.torch_anisotropy = torch.as_tensor(np.zeros(self.N_wells) + self.anisotropy,
-											 dtype=self.torch_FloatPrecision, device=self.torch_device)
+		self.h_dis_x_flat = torch.nn.Parameter(torch.tensor(h_dis_x_flat).to(device), requires_grad=False)
+		self.h_dis_y_flat = torch.nn.Parameter(torch.tensor(h_dis_y_flat).to(device), requires_grad=False)
 
-		self.torch_gamma = torch.as_tensor(np.zeros(self.N_wells) + self.gamma, dtype=self.torch_FloatPrecision,
-										device=self.torch_device)
+		self.beta_disorder_array_flattened = torch.nn.Parameter(torch.tensor(beta_disorder_array_flattened).to(device), requires_grad=False)
+		self.beta = torch.nn.Parameter(torch.tensor(beta_flat).to(device), requires_grad=False)
+		self.e_disorder = torch.nn.Parameter(torch.tensor(e_disorder_flat).to(device), requires_grad=False)
 
-		# self.torch_N_wells = torch.tensor(self.N_wells, tf.int64)
-
-		self.torch_nn_idx_1 = torch.as_tensor(self.nn_idx_1, dtype=torch.int64, device=self.torch_device)
-		self.torch_nn_idx_2 = torch.as_tensor(self.nn_idx_2, dtype=torch.int64, device=self.torch_device)
-		self.torch_nn_idy_1 = torch.as_tensor(self.nn_idy_1, dtype=torch.int64, device=self.torch_device)
-		self.torch_nn_idy_2 = torch.as_tensor(self.nn_idy_2, dtype=torch.int64, device=self.torch_device)
-		self.torch_nn_idz_1 = torch.as_tensor(self.nn_idz_1, dtype=torch.int64, device=self.torch_device)
-		self.torch_nn_idz_2 = torch.as_tensor(self.nn_idz_2, dtype=torch.int64, device=self.torch_device)
-
-		self.torch_first_half = torch.as_tensor(np.arange(self.N_wells), dtype=torch.int64, device=self.torch_device)
-		self.torch_second_half = torch.as_tensor(np.arange(self.N_wells, 2 * self.N_wells),
-											  dtype=torch.int64, device=self.torch_device)
-
-		# self.torch_psi = Variable(self.psi, device=self.torch_device)
-		# self.torch_x = Variable(self.psi[:self.N_wells], device=self.torch_device)
-		# self.torch_y = Variable(self.psi[self.N_wells:], device=self.torch_device)
-
-		self.torch_psi = torch.tensor(self.psi, dtype=self.torch_FloatPrecision, device=self.torch_device)
-		self.torch_x = torch.tensor(self.psi[:self.N_wells], dtype=self.torch_FloatPrecision,
-									device=self.torch_device)
-		self.torch_y = torch.tensor(self.psi[self.N_wells:], dtype=self.torch_FloatPrecision,
-									device=self.torch_device)
-
-		self.torch_dpsi = torch.tensor(self.dpsi.shape, dtype=self.torch_FloatPrecision, device=self.torch_device)
-
-		# self.torch_dpsi = Variable(np.zeros(self.dpsi.shape), device=self.torch_device)
-		self.torch_E_new = torch.tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision, device=self.torch_device)
-		# self.torch_E_new = Variable(np.zeros(self.N_wells), device=self.torch_device)
-
-		# self.torch_xL = Variable(np.zeros(self.N_wells), device=self.torch_device)
-		# self.torch_yL = Variable(np.zeros(self.N_wells), device=self.torch_device)
-
-		self.torch_xL = torch.tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision,
-									 device=self.torch_device)
-		self.torch_yL = torch.tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision,
-									 device=self.torch_device)
-
-		self.torch_zero = torch.as_tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision, device=self.torch_device)
-		# self.tf_zero = tf.placeholder(self.tf_FloatPrecision, name='zero')
-
-		self.torch_h_dis_x_flat = torch.as_tensor(self.h_dis_x_flat, dtype=self.torch_FloatPrecision, device=self.torch_device)
-		self.torch_h_dis_y_flat = torch.as_tensor(self.h_dis_y_flat, dtype=self.torch_FloatPrecision, device=self.torch_device)
-		self.torch_beta_disorder_array_flattened = torch.as_tensor(self.beta_disorder_array_flattened,
-																dtype=self.torch_FloatPrecision, device=self.torch_device)
-		self.torch_beta = torch.as_tensor(self.beta_flat, dtype=self.torch_FloatPrecision, device=self.torch_device)
-
-		if self.gpu_integrator == 'torch':
-			self.torch_e_disorder = torch.tensor(self.e_disorder_flat, dtype=self.torch_FloatPrecision,
-												 device=self.torch_device)
+		self.E_new = torch.nn.Parameter(torch.tensor(np.zeros(N_wells)).to(device), requires_grad=True)
+		self.E_desired = torch.nn.Parameter(torch.tensor(E_desired).to(device), requires_grad=False)
+		self.gamma_reduction = torch.nn.Parameter(torch.tensor(gamma_reduction).to(device), requires_grad=False)
 
 	def forward(self, t, y):
-        return self.a + (y - (self.a * t + self.b))**5
+		return(torch.cat([(self.gamma_reduction * (self.calc_energy_XY(y) - self.E_desired)) * self.gamma * y[self.N_wells:] * (
+				(self.J * (
+						torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+						torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+						torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+						torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+						self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+										   torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
+										   )
+				)) * y[self.N_wells:]- (self.J * (
+					torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
+					torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
+					torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+					torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+					self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
+									   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
+									   )
+			)) * y[:self.N_wells]) +
 
-    def y_exact(self, t):
-        return self.a * t + self.b
+			 self.e_disorder * y[self.N_wells:] - (self.J * (
+				torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
+				torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
+				torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+				torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+				self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
+								   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
+								   )
+		)) + self.h_dis_y_flat + self.beta *
+									 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
+																										 self.N_wells:]
+										,
 
-	def torch_HamiltonianXY_fast(self, ts, y0):
-		self.torch_psi = y0
-		# self.torch_x = torch.gather(y0, 0, self.torch_first_half)
-		# self.torch_y = torch.gather(y0, 0, self.torch_second_half)
-		self.torch_x = y0[:self.N_wells]
-		self.torch_y = y0[self.N_wells:]
+			-(self.gamma_reduction * (self.calc_energy_XY(y) - self.E_desired)) * self.gamma * y[:self.N_wells] * (
+				 (self.J * (
+						 torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+						 torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+						 torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+						 torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+						 self.anisotropy * (
+									 torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+									 torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
+									 )
+				 )) * y[self.N_wells:] -  (self.J * (
+					torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
+					torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
+					torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+					torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+					self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
+									   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
+									   )
+			)) * y[:self.N_wells]) -self.e_disorder * y[:self.N_wells] +
+			(self.J * (
+					torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+					torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+					torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+					torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+					self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+									   torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
+									   )
+			)) - self.h_dis_x_flat -self.beta *
+			(torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
+   		)
 
-		self.torch_dpsi = torch.cat([self.torch_e_disorder * self.torch_y, -self.torch_e_disorder * self.torch_x], dim=0)
+	def calc_energy_XY(self, y):
+		return torch.sum(self.beta * 0.5 * (
+			torch.pow(torch.pow(y[:self.N_wells], 2.) + torch.pow(y[self.N_wells:], 2.), 2.)) +
 
-		self.torch_xL = (self.torch_J * (
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_x, 0, self.torch_nn_idz_1) +
-										 torch.gather(self.torch_x, 0, self.torch_nn_idz_2)
-										 )
-		))
+			self.e_disorder * (torch.pow(y[:self.N_wells], 2) + torch.pow(y[self.N_wells:], 2))
 
-		self.torch_yL = (self.torch_J * (
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_y, 0, self.torch_nn_idz_1) +
-										 torch.gather(self.torch_y, 0, self.torch_nn_idz_2)
-										 )
-		))
-
-		self.torch_dpsi.add_(torch.cat([-self.torch_yL, self.torch_xL], dim=0))
-
-		self.torch_dpsi.add_(torch.cat([self.torch_h_dis_y_flat, -self.torch_h_dis_x_flat], dim=0))
-
-		self.torch_dpsi.add_(torch.cat([self.torch_beta *
-										(torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y,
-										- self.torch_beta *
-										(torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x], dim=0))
-
-		return self.torch_dpsi
-
-
-	def torch_Hamiltonian_with_Relaxation_XY_fast(self, ts, y0):
-		self.torch_psi = y0
-		self.torch_x = y0[:self.N_wells]
-		self.torch_y = y0[self.N_wells:]
-
-		# self.torch_x.data.zero_().add_(torch.gather(y0, 0, self.torch_first_half))
-		# self.torch_y.data.zero_().add_(torch.gather(y0, 0, self.torch_second_half))
-
-		self.torch_xL = (self.torch_J.mul(
-			torch.gather(self.torch_x, 0, self.torch_nn_idx_1).add(
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_2)).add(
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_1)).add(
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_2)).add(
-				self.torch_anisotropy.mul(torch.gather(self.torch_x, 0, self.torch_nn_idz_1).add(
-					torch.gather(self.torch_x, 0, self.torch_nn_idz_2))
-				))
-		))
-
-		self.torch_yL = (self.torch_J.mul(
-			torch.gather(self.torch_y, 0, self.torch_nn_idx_1).add(
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_2)).add(
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_1)).add(
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_2)).add(
-				self.torch_anisotropy.mul(torch.gather(self.torch_y, 0, self.torch_nn_idz_1).add(
-					torch.gather(self.torch_y, 0, self.torch_nn_idz_2))
-				))
-		))
-
-		# self.torch_dpsi[self.torch_first_half].zero_().add_(self.torch_gamma * self.torch_y * (
-		# 		self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
-		# self.torch_dpsi[self.torch_second_half].zero_().add_(-self.torch_gamma * self.torch_x * (
-		# 							 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
-
-		self.torch_dpsi = torch.cat([self.torch_gamma.mul(self.torch_y).mul(
-			torch.sub(self.torch_xL.mul(self.torch_y), self.torch_yL.mul(self.torch_x))),
-			-self.torch_gamma.mul(self.torch_x).mul(
-				torch.sub(self.torch_xL.mul(self.torch_y), self.torch_yL.mul(self.torch_x)))], dim=0)
-
-		self.torch_dpsi.mul_(self.torch_get_gamma_reduction())
-
-		self.torch_dpsi.add_(
-			torch.cat([self.torch_e_disorder.mul(self.torch_y), -self.torch_e_disorder.mul(self.torch_x)], dim=0))
-
-		# self.torch_dpsi[self.torch_first_half].add_(self.torch_e_disorder * self.torch_y)
-		# self.torch_dpsi[self.torch_second_half].add_(-self.torch_e_disorder * self.torch_x)
-
-		self.torch_dpsi.add_(torch.cat([-self.torch_yL, self.torch_xL], dim=0))
-		# self.torch_dpsi[self.torch_first_half].add_(-self.torch_yL)
-		# self.torch_dpsi[self.torch_second_half].add_(self.torch_xL)
-
-		self.torch_dpsi.add_(torch.cat([self.torch_h_dis_y_flat, -self.torch_h_dis_x_flat], dim=0))
-
-		# self.torch_dpsi[self.torch_first_half].add_(self.torch_h_dis_y_flat)
-		# self.torch_dpsi[self.torch_second_half].add_(-self.torch_h_dis_x_flat)
-
-		self.torch_dpsi.add_(torch.cat([
-			self.torch_beta.mul(
-				(torch.pow(self.torch_y, 2).add(torch.pow(self.torch_x, 2))).mul(self.torch_y)),
-			- self.torch_beta.mul(
-				(torch.pow(self.torch_y, 2).add(torch.pow(self.torch_x, 2))).mul(self.torch_x))], dim=0))
-
-		# self.torch_dpsi[self.torch_first_half].add_(self.torch_beta *
-		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y)
-		# self.torch_dpsi[self.torch_second_half].add_(- self.torch_beta *
-		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x)
-
-		return self.torch_dpsi
-
-
-	def torch_calc_energy_XY(self):
-		# tf_E_new = tf.Variable(self.tf_zero, dtype=self.tf_FloatPrecision, trainable=True, initializer=tf.zeros_initializer)
-		self.torch_E_new = self.torch_beta * 0.5 * (
-			torch.pow(torch.pow(self.torch_x, 2.) + torch.pow(self.torch_y, 2.), 2.))
-		self.torch_E_new.add_(self.torch_e_disorder * (torch.pow(self.torch_x, 2) + torch.pow(self.torch_y, 2)))
-		self.torch_E_new.add_(-self.torch_J * (self.torch_x * (
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_x, 0, self.torch_nn_idz_1) +
-										 torch.gather(self.torch_x, 0, self.torch_nn_idz_2)
+			-self.J * (y[:self.N_wells] * (
+				torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+				torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+				torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+				torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+				self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+										 torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
 										 )) +
-											   self.torch_y * (
-													   torch.gather(self.torch_y, 0, self.torch_nn_idx_1) +
-													   torch.gather(self.torch_y, 0, self.torch_nn_idx_2) +
-													   torch.gather(self.torch_y, 0, self.torch_nn_idy_1) +
-													   torch.gather(self.torch_y, 0, self.torch_nn_idy_2) +
-													   self.torch_anisotropy * (
-																   torch.gather(self.torch_y, 0, self.torch_nn_idz_1) +
-																   torch.gather(self.torch_y, 0, self.torch_nn_idz_2)
-																   )
-											   )
-											   ))
-		self.torch_E_new.add_(self.torch_h_dis_x_flat * self.torch_x + self.torch_h_dis_y_flat * self.torch_y)
-		return self.torch_E_new
-
-
-	if self.gpu_integrator == 'torch':
-		# self.torch_E_new = torch.tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision,
-		# 								device=self.torch_device)
-		self.torch_gamma_reduction = torch.tensor(np.zeros(self.N_wells) + self.gamma_reduction,
-												  dtype=self.torch_FloatPrecision, device=self.torch_device)
-		self.torch_E_desired = torch.tensor(np.zeros(self.N_wells) + self.E_desired,
-											dtype=self.torch_FloatPrecision, device=self.torch_device)
-	# self.torch_temperature_dependent_rate = torch.constant(True, torch.bool)
+			   y[self.N_wells:] * (
+					   torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
+					   torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
+					   torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+					   torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+					   self.anisotropy * (
+								   torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
+								   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
+								   )
+			   )) + self.h_dis_x_flat * y[:self.N_wells] + self.h_dis_y_flat * y[self.N_wells:]
+		)
