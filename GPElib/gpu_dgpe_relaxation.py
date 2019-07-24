@@ -64,7 +64,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 			))
 		if self.smooth_quench.item() > 0:
 			return (torch.cat(
-				[(self.gamma_reduction * (self.calc_energy_XY(y, xL, yL) - self.E_desired)) * self.gamma * y[
+				[self.quenching_profile(t) * self.gamma * y[
 																										   self.N_wells:] * (
 						 xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
 
