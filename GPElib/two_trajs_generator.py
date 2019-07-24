@@ -1,6 +1,5 @@
 '''
-Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -65,7 +64,6 @@ class TwoTrajsGenerator(DynamicsGenerator):
 		# 	self.histograms1[iwell] = np.histogram2d(np.float64(self.X1[iwell]), np.float64(self.Y1[iwell]), bins=100)
 		# 	self.rho_histograms1[iwell] = np.histogram(np.float64(self.RHO1[iwell] ** 2), bins=100)
 
-
 	def set_constants_of_motion(self):
 		DynamicsGenerator.set_constants_of_motion(self)
 		self.energy1, self.number_of_particles1, self.angular_momentum1 = self.calc_constants_of_motion(self.RHO1, self.THETA1, self.X1, self.Y1)
@@ -74,4 +72,3 @@ class TwoTrajsGenerator(DynamicsGenerator):
 		for i in self.wells_indices:
 			self.histograms1[i] = np.histogram2d(np.float64(self.X1[i]), np.float64(self.Y1[i]), bins=100)
 			self.rho_histograms1[i] = np.histogram(np.float64(self.RHO1[i] ** 2), bins=100)
-

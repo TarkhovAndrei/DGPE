@@ -1,34 +1,34 @@
 '''
-Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-and to permit persons to whom the Software is furnished to do so, subject to the following 2 conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following 2 conditions:
 
-1) If any part of the present source code is used for any purposes followed by publication of obtained results,
-the citation of the present code shall be provided according to the rule:
+1) If any part of the present source code is used for any purposes with subsequent publication of obtained results,
+the GitHub repository shall be cited in all publications, according to the citation rule:
+	"Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
+	 source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE, 2019."
 
-    "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-    source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE
-    was used to obtain the presented results, 2019."
+2) The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-2) The above copyright notice and this permission notice shall be included in all copies or
-substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
-OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 '''
 
 import numpy as np
 from GPElib.lyapunov_generator import LyapunovGenerator
 from GPElib.visualisation import Visualisation
 import matplotlib
-print matplotlib.matplotlib_fname()
 import matplotlib.pyplot as plt
 import sys
 
@@ -36,8 +36,8 @@ sys.stderr = sys.stdout
 
 def init_instability(inst, traj_seed):
 	inst.generate_init('random', traj_seed, 100.)
-	delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
-	# delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
+	# delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
+	delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
 	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta)
 	x1, y1 = inst.constant_perturbation_XY(x0,y0)
 	inst.set_init_XY(x0,y0,x1,y1)
@@ -122,7 +122,6 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 		print lyap.lambdas
 		print lyap.lambdas_no_regr
 		num_good += 1
-		# plt.semilogy(lyap.T, lyap.distance)
 		np.savez_compressed(vis.filename(my_id) + '_traj_' + str(i_traj),
 		         step=lyap.step, time=lyap.time,
 		         traj_seed=lyap.traj_seed,

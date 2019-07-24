@@ -1,6 +1,5 @@
 '''
-Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -23,7 +22,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
-
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -101,6 +99,7 @@ class LyapunovGenerator(TwoTrajsGenerator):
 		if self.instability_stops[-1] != self.n_steps:
 			self.instability_stops.append(self.n_steps)
 		# self.distance = self.calc_traj_shift_matrix_cartesian_XY(self.X, self.Y, self.X1, self.Y1)
+
 		if (np.abs(np.max(np.abs(self.energy - self.E_calibr)) / self.E_calibr) > 0.01) or (np.abs(np.max(np.abs(self.energy1 - self.E_calibr)) / self.E_calibr) > 0.01):
 			self.make_exception('Energy is not conserved during the dynamics\n')
 		if (np.abs(np.max(np.abs(self.number_of_particles - self.N_part)) / self.N_part) > 0.01) or (np.abs(np.max(np.abs(self.number_of_particles1 - self.N_part)) / self.N_part) > 0.01):

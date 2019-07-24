@@ -1,6 +1,5 @@
 '''
-Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -74,6 +73,7 @@ class DynamicsGenerator(object):
 			for j in xrange(self.Ny):
 				for k in xrange(self.Nz):
 					self.wells_index_tuple_to_num[(i,j,k)] = i + self.Ny * (j + self.Nz * k)
+
 		#Seeds
 		self.disorder_seed = kwargs.get('disorder_seed', 78)
 		self.traj_seed = kwargs.get('traj_seed', 78)
@@ -84,7 +84,6 @@ class DynamicsGenerator(object):
 		self.N_part = kwargs.get('N_part_per_well', 100000)
 		self.N_part *= self.N_wells
 		self.tau_char = kwargs.get('tau_char', 1.0 / np.sqrt(3. * self.beta * self.J * self.N_part/self.N_wells))
-
 		self.FloatPrecision = kwargs.get('FloatPrecision', np.float128)
 
 		self.E_calibr = kwargs.get('E_calibr', 0)
@@ -99,6 +98,7 @@ class DynamicsGenerator(object):
 		self.angular_momentum = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.number_of_particles = np.zeros(self.n_steps, dtype=self.FloatPrecision)
 		self.distance = np.zeros(self.n_steps, dtype=self.FloatPrecision)
+
 		self.histograms = {}
 		self.rho_histograms = {}
 
@@ -107,6 +107,7 @@ class DynamicsGenerator(object):
 		self.THETA = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
 		self.X = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
 		self.Y = np.zeros(self.N_tuple + (self.n_steps_savings,), dtype=self.FloatPrecision)
+
 		self.consistency_checksum = 0
 		self.error_code = ""
 		self.configure(kwargs)

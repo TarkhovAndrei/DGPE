@@ -1,6 +1,5 @@
 '''
-Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -46,8 +45,6 @@ class InstabilityGenerator(TwoTrajsGenerator):
 			x1, y1 = self.constant_perturbation_XY(self.X[:,:,:,-1],self.Y[:,:,:,-1])
 		self.set_init_XY(self.X[:,:,:,0], self.Y[:,:,:,0], x1, y1)
 		self.reverse_hamiltonian(self.error_J, self.error_beta, self.error_disorder)
-
-
 		for i in xrange(1, self.n_steps):
 			if (np.any((self.RHO1[:,:,:,i-1] ** 2) < self.threshold_XY_to_polar)):
 				psi1 = self.rk4_step_exp_XY(np.hstack((self.X1[:,:,:,i-1].flatten(), self.Y1[:,:,:,i-1].flatten())))

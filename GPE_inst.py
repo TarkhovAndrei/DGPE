@@ -1,6 +1,5 @@
 '''
-Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-https://github.com/TarkhovAndrei/DGPE>
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -28,7 +27,6 @@ import numpy as np
 from GPElib.instability_generator import InstabilityGenerator
 from GPElib.visualisation import Visualisation
 import matplotlib
-print matplotlib.matplotlib_fname()
 import matplotlib.pyplot as plt
 import sys
 
@@ -95,7 +93,6 @@ all_y1 = {}
 for ii in needed_trajs:
 	inst.traj_seed = ii
 	np.random.seed(ii)
-
 	err = 1
 	while err == 1:
 		traj_seed = np.random.randint(100000)
