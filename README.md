@@ -1,8 +1,8 @@
-# A solver for the discrete Gross-Pitaevskii equation in one, two and three dimensions
+# A solver for the Gross-Pitaevskii equation on a one-, two- or three- dimensional lattice
 
-A tool for modelling of the system of coupled Bose-Einstein condensates on a lattice with periodic boundary conditions in 1D, 2D and 3D.
+A tool for modelling the system of coupled Bose-Einstein condensates on a lattice with periodic boundary conditions in 1D, 2D and 3D.
 
-A Runge-Kutta 4th order algorithm is employed. Quadrupole precision numbers are used for all calculations. 
+The 4-th order Runge-Kutta algorithm with a fixed time step is employed. The code supports double and quadrupole precision numbers.
 
 The standard routine for the largest Lyapunov exponent calculation is implemented, 
 as well as a custom Loschmidt echo (imperfect time-reversal) routine, for the lattice of coupled Bose-Einstein condensates.
