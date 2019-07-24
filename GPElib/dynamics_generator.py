@@ -1513,24 +1513,24 @@ class DynamicsGenerator(object):
 
 	def torch_Hamiltonian_with_Relaxation_XY_fast(self):
 
-		self.torch_xL = (self.torch_J * (
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_x, 0, self.torch_nn_idz_1) +
-								   torch.gather(self.torch_x, 0, self.torch_nn_idz_2)
-								   )
+		self.torch_xL = (self.torch_J.mul(
+				torch.gather(self.torch_x, 0, self.torch_nn_idx_1).add(
+				torch.gather(self.torch_x, 0, self.torch_nn_idx_2)).add(
+				torch.gather(self.torch_x, 0, self.torch_nn_idy_1)).add(
+				torch.gather(self.torch_x, 0, self.torch_nn_idy_2)).add(
+				self.torch_anisotropy.mul(torch.gather(self.torch_x, 0, self.torch_nn_idz_1).add(
+								   torch.gather(self.torch_x, 0, self.torch_nn_idz_2))
+								   ))
 		))
 
-		self.torch_yL = (self.torch_J * (
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_y, 0, self.torch_nn_idz_1) +
-								   torch.gather(self.torch_y, 0, self.torch_nn_idz_2)
-								   )
+		self.torch_yL = (self.torch_J.mul(
+				torch.gather(self.torch_y, 0, self.torch_nn_idx_1).add(
+				torch.gather(self.torch_y, 0, self.torch_nn_idx_2)).add(
+				torch.gather(self.torch_y, 0, self.torch_nn_idy_1)).add(
+				torch.gather(self.torch_y, 0, self.torch_nn_idy_2)).add(
+				self.torch_anisotropy.mul(torch.gather(self.torch_y, 0, self.torch_nn_idz_1).add(
+								   torch.gather(self.torch_y, 0, self.torch_nn_idz_2))
+								   ))
 		))
 
 		# self.torch_dpsi[self.torch_first_half].zero_().add_(self.torch_gamma * self.torch_y * (
@@ -1538,14 +1538,14 @@ class DynamicsGenerator(object):
 		# self.torch_dpsi[self.torch_second_half].zero_().add_(-self.torch_gamma * self.torch_x * (
 		# 							 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
 
-		self.torch_dpsi = torch.cat([self.torch_gamma * self.torch_y * (
-				self.torch_xL * self.torch_y - self.torch_yL * self.torch_x),
-							 -self.torch_gamma * self.torch_x * (
-									 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x)], dim=0)
+		self.torch_dpsi = torch.cat([self.torch_gamma.mul(self.torch_y).mul(
+				torch.sub(self.torch_xL.mul(self.torch_y), self.torch_yL.mul(self.torch_x))),
+							 -self.torch_gamma.mul(self.torch_x).mul(
+									 torch.sub(self.torch_xL.mul(self.torch_y),self.torch_yL.mul(self.torch_x)))], dim=0)
 
 		self.torch_dpsi.mul_(self.torch_get_gamma_reduction())
 
-		self.torch_dpsi.add_(torch.cat([self.torch_e_disorder * self.torch_y, -self.torch_e_disorder * self.torch_x], dim=0))
+		self.torch_dpsi.add_(torch.cat([self.torch_e_disorder.mul(self.torch_y), -self.torch_e_disorder.mul(self.torch_x)], dim=0))
 
 		# self.torch_dpsi[self.torch_first_half].add_(self.torch_e_disorder * self.torch_y)
 		# self.torch_dpsi[self.torch_second_half].add_(-self.torch_e_disorder * self.torch_x)
@@ -1559,9 +1559,11 @@ class DynamicsGenerator(object):
 		# self.torch_dpsi[self.torch_first_half].add_(self.torch_h_dis_y_flat)
 		# self.torch_dpsi[self.torch_second_half].add_(-self.torch_h_dis_x_flat)
 
-		self.torch_dpsi.add_(torch.cat([self.torch_beta *
-				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y, - self.torch_beta *
-				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x], dim=0))
+		self.torch_dpsi.add_(torch.cat([
+					self.torch_beta.mul(
+				   (torch.pow(self.torch_y, 2).add(torch.pow(self.torch_x, 2))).mul(self.torch_y)),
+						- self.torch_beta.mul(
+				   (torch.pow(self.torch_y, 2).add(torch.pow(self.torch_x, 2))).mul(self.torch_x))], dim=0))
 
 		# self.torch_dpsi[self.torch_first_half].add_(self.torch_beta *
 		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y)
