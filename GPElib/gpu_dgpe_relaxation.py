@@ -39,17 +39,19 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 		self.E_desired = torch.nn.Parameter(torch.tensor(E_desired).to(device), requires_grad=False)
 		self.gamma_reduction = torch.nn.Parameter(torch.tensor(gamma_reduction).to(device), requires_grad=False)
 
+
 	def forward(self, t, y):
-		return(torch.cat([(self.gamma_reduction * (self.calc_energy_XY(y) - self.E_desired)) * self.gamma * y[self.N_wells:] * (
-				(self.J * (
-						torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
-						torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
-						torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
-						torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
-						self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
-										   torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
-										   )
-				)) * y[self.N_wells:]- (self.J * (
+		xL = (self.J * (
+							torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+							torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+							torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+							torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+							self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+											   torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
+											   )
+					))
+
+		yL = (self.J * (
 					torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
 					torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
 					torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
@@ -57,74 +59,120 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 					self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
 									   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
 									   )
-			)) * y[:self.N_wells]) +
+			))
+		return (torch.cat(
+			[(self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)) * self.gamma * y[self.N_wells:] * (
+					xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
 
-			 self.e_disorder * y[self.N_wells:] - (self.J * (
-				torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
-				torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
-				torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
-				torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
-				self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
-								   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
-								   )
-		)) + self.h_dis_y_flat + self.beta *
-									 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
-																										 self.N_wells:]
-										,
+			 self.e_disorder * y[self.N_wells:] - yL + self.h_dis_y_flat + self.beta *
+			 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
+																				 self.N_wells:]
+				,
 
-			-(self.gamma_reduction * (self.calc_energy_XY(y) - self.E_desired)) * self.gamma * y[:self.N_wells] * (
-				 (self.J * (
-						 torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
-						 torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
-						 torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
-						 torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
-						 self.anisotropy * (
-									 torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
-									 torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
-									 )
-				 )) * y[self.N_wells:] -  (self.J * (
-					torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
-					torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
-					torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
-					torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
-					self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
-									   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
-									   )
-			)) * y[:self.N_wells]) -self.e_disorder * y[:self.N_wells] +
-			(self.J * (
-					torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
-					torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
-					torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
-					torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
-					self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
-									   torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
-									   )
-			)) - self.h_dis_x_flat -self.beta *
-			(torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
-   		)
+			 -(self.gamma_reduction * (self.calc_energy_XY(y) - self.E_desired)) * self.gamma * y[:self.N_wells] * (
+					 xL * y[self.N_wells:] - yL * y[:self.N_wells]) - self.e_disorder * y[:self.N_wells] +
+			 xL - self.h_dis_x_flat - self.beta *
+			 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
+				)
 
-	def calc_energy_XY(self, y):
+	def calc_energy_XY(self, y, xL, yL):
 		return torch.sum(self.beta * 0.5 * (
 			torch.pow(torch.pow(y[:self.N_wells], 2.) + torch.pow(y[self.N_wells:], 2.), 2.)) +
 
-			self.e_disorder * (torch.pow(y[:self.N_wells], 2) + torch.pow(y[self.N_wells:], 2))
+						 self.e_disorder * (torch.pow(y[:self.N_wells], 2) + torch.pow(y[self.N_wells:], 2))
 
-			-self.J * (y[:self.N_wells] * (
-				torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
-				torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
-				torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
-				torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
-				self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
-										 torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
-										 )) +
-			   y[self.N_wells:] * (
-					   torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
-					   torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
-					   torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
-					   torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
-					   self.anisotropy * (
-								   torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
-								   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
-								   )
-			   )) + self.h_dis_x_flat * y[:self.N_wells] + self.h_dis_y_flat * y[self.N_wells:]
-		)
+						 - (y[:self.N_wells] * xL +
+									 y[self.N_wells:] * yL) + self.h_dis_x_flat * y[:self.N_wells] + self.h_dis_y_flat * y[self.N_wells:]
+						 )
+
+# def forward(self, t, y):
+	#
+	#
+	# 	return(torch.cat([(self.gamma_reduction * (self.calc_energy_XY(y) - self.E_desired)) * self.gamma * y[self.N_wells:] * (
+	# 			(self.J * (
+	# 					torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+	# 					torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+	# 					torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+	# 					torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+	# 					self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+	# 									   torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
+	# 									   )
+	# 			)) * y[self.N_wells:]- (self.J * (
+	# 				torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
+	# 				torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
+	# 				torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+	# 				torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+	# 				self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
+	# 								   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
+	# 								   )
+	# 		)) * y[:self.N_wells]) +
+	#
+	# 		 self.e_disorder * y[self.N_wells:] - (self.J * (
+	# 			torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
+	# 			torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
+	# 			torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+	# 			torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+	# 			self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
+	# 							   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
+	# 							   )
+	# 	)) + self.h_dis_y_flat + self.beta *
+	# 								 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
+	# 																									 self.N_wells:]
+	# 									,
+	#
+	# 		-(self.gamma_reduction * (self.calc_energy_XY(y) - self.E_desired)) * self.gamma * y[:self.N_wells] * (
+	# 			 (self.J * (
+	# 					 torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+	# 					 torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+	# 					 torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+	# 					 torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+	# 					 self.anisotropy * (
+	# 								 torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+	# 								 torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
+	# 								 )
+	# 			 )) * y[self.N_wells:] -  (self.J * (
+	# 				torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
+	# 				torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
+	# 				torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+	# 				torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+	# 				self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
+	# 								   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
+	# 								   )
+	# 		)) * y[:self.N_wells]) -self.e_disorder * y[:self.N_wells] +
+	# 		(self.J * (
+	# 				torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+	# 				torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+	# 				torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+	# 				torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+	# 				self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+	# 								   torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
+	# 								   )
+	# 		)) - self.h_dis_x_flat -self.beta *
+	# 		(torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
+   	# 	)
+	#
+	# def calc_energy_XY(self, y):
+	# 	return torch.sum(self.beta * 0.5 * (
+	# 		torch.pow(torch.pow(y[:self.N_wells], 2.) + torch.pow(y[self.N_wells:], 2.), 2.)) +
+	#
+	# 		self.e_disorder * (torch.pow(y[:self.N_wells], 2) + torch.pow(y[self.N_wells:], 2))
+	#
+	# 		-self.J * (y[:self.N_wells] * (
+	# 			torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
+	# 			torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
+	# 			torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+	# 			torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+	# 			self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
+	# 									 torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
+	# 									 )) +
+	# 		   y[self.N_wells:] * (
+	# 				   torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
+	# 				   torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
+	# 				   torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+	# 				   torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+	# 				   self.anisotropy * (
+	# 							   torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
+	# 							   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
+	# 							   )
+	# 		   )) + self.h_dis_x_flat * y[:self.N_wells] + self.h_dis_y_flat * y[self.N_wells:]
+	# 	)
