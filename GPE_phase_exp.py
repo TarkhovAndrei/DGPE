@@ -1,36 +1,34 @@
 '''
-Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology, https://github.com/TarkhovAndrei/DGPE>
+Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
+https://github.com/TarkhovAndrei/DGPE_ergodization_time>
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following 2 conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject to the following 2 conditions:
 
-1) If any part of the present source code is used for any purposes with subsequent publication of obtained results,
-the GitHub repository shall be cited in all publications, according to the citation rule:
-	"Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
-	 source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE, 2019."
+1) If any part of the present source code is used for any purposes followed by publication of obtained results,
+the citation of the present code shall be provided according to the rule:
 
-2) The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+    "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
+    source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE_ergodization_time
+    was used to obtain the presented results, 2017."
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2) The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
-
 
 import numpy as np
 from GPElib.dynamics_generator import DynamicsGenerator
 from GPElib.visualisation import Visualisation
 import matplotlib
-print matplotlib.matplotlib_fname()
+print(matplotlib.matplotlib_fname())
 import matplotlib.pyplot as plt
 import sys
 
@@ -46,7 +44,7 @@ def init_instability(inst, traj_seed=42, E=1., from_backup=False, init_conds=Non
         err = 0
     return err
 
-print len(sys.argv), sys.argv
+print(len(sys.argv), sys.argv)
 
 if len(sys.argv) > 4:
 	seed_from = int(sys.argv[1])
@@ -64,51 +62,43 @@ needed_trajs = np.arange(seed_from, seed_to)
 perturb_seeds = np.arange(123,124)#(2381,2382)#(100, 110)#(106,108)#(97,98)#(97, 100)#(15, 18) #[53, 12, 20, 87]
 
 # time = 30 * 40 * 80.
-time = 100.# * 40 * 80.
-time_backup = 100.
+time = 51.# * 40 * 80.
+time_backup = 51.
 N_backups = int(np.ceil(time / time_backup)) + 1
 time = N_backups * time_backup
 
+step_large = 0.5
 step = 0.05
+step_small = 0.01
+step_LE = 1.
+
 N_wells = 10.
 W = 0.
-gamma_tmp = 0.01
-
-# lyap = DynamicsGenerator(N_part_per_well=1,
-#                          W=W, disorder_seed=53,
-#                          N_wells=(20,20,20), dimensionality=3, anisotropy=1.0,
-#                          threshold_XY_to_polar=0.25,
-# 			 integrator='scipy',FloatPrecision=np.float64,
-#                          step=step, reset_steps_duration=5,beta=3.,
-#                          calculation_type='lyap_saving_all',
-#                          time=100., gamma=1.)
+gamma_tmp = 1.
 
 lyap = DynamicsGenerator(N_part_per_well=1.,
                          W=W, disorder_seed=53,
-                         N_wells=(20,20,20), dimensionality=3, anisotropy=1.0,
+                         N_wells=(30,30,30), dimensionality=3, anisotropy=1.0,
                          threshold_XY_to_polar=0.25,
-                         beta=3., FloatPrecision=np.float64,
+                         beta=10.,  #beta_disorder_amplitude=2.,
+						local_disorder_amplitude=0.00,
+						 FloatPrecision=np.float64,
                         integration_method='RK45',
                          rtol=1e-8, atol=1e-8,
+			smooth_quench=True,
 						reset_steps_duration=5,
                          calculation_type='lyap_save_all',
 			 	integrator='scipy',
 				 time=time_backup, step=step, gamma=gamma_tmp)
 
-# lyap_dynamic = DynamicsGenerator(N_part_per_well=1,
-# 										 W=W, disorder_seed=53,
-# 										 N_wells=(20,20,20), dimensionality=3, anisotropy=1.0,
-# 										 threshold_XY_to_polar=0.25,
-# 										 reset_steps_duration=5,
-#                                         FloatPrecision=np.float64, beta=3.,integrator='scipy',
-# 										 calculation_type='lyap_saving_all',
-# 										 time=time_backup, step=step, gamma=1.)
-
 lyap_dynamic = DynamicsGenerator(N_part_per_well=1.,
                          W=W, disorder_seed=53,
-                         N_wells=(20,20,20), dimensionality=3, anisotropy=1.0,
+                         N_wells=(30,30,30), dimensionality=3, anisotropy=1.0,
                          threshold_XY_to_polar=0.25,
-                         beta=3., FloatPrecision=np.float64,
+                         beta=10.,
+						 local_disorder_amplitude=0.00,
+						 #beta_disorder_amplitude=2.,
+						 FloatPrecision=np.float64,
                         integration_method='RK45',
                          rtol=1e-8, atol=1e-8,
 						reset_steps_duration=5,
@@ -116,10 +106,12 @@ lyap_dynamic = DynamicsGenerator(N_part_per_well=1.,
 			 			integrator='scipy',
 				 		time=time_backup, step=step, gamma=1.)
 
-
 grname = 'GPE_phase_' + unique_id
-vis = Visualisation(is_local=0,  HOMEDIR='/data1/andrey/data/', GROUP_NAMES=grname)
-vis_backup = Visualisation(is_local=0,  HOMEDIR='/data1/andrey/data/backups/', GROUP_NAMES=grname)
+vis = Visualisation(is_local=0,  HOMEDIR='/data/tarkhov/data/', GROUP_NAMES=grname)
+vis_backup = Visualisation(is_local=0,  HOMEDIR='/data/tarkhov/data/backups/', GROUP_NAMES=grname)
+
+# vis = Visualisation(is_local=0,  HOMEDIR='/data1/andrey/data/', GROUP_NAMES=grname)
+# vis_backup = Visualisation(is_local=0,  HOMEDIR='/data1/andrey/data/backups/', GROUP_NAMES=grname)
 
 # vis = Visualisation(is_local=1,  HOMEDIR='/Users/tarkhov/tmp/', GROUP_NAMES=grname)
 # vis_backup = Visualisation(is_local=1,  HOMEDIR='/Users/tarkhov/tmp/backups/', GROUP_NAMES=grname)
@@ -128,13 +120,13 @@ def try_find_backup():
 	try:
 		backup_intro = np.load(vis_backup.filename('_BACKUP_PRESENT_' + str(my_id)))
 		backup_id = backup_intro['backup_id']
-		print backup_id
+		print(backup_id)
 		backup = np.load(vis_backup.filename('_BACKUP_PRESENT_' + str(my_id) + '_intermediate_' + str(backup_id)))
-		print 'Start from backup file'
+		print('Start from backup file')
 		backup_present = True
 		return backup, backup_id, backup_present
 	except:
-		print 'No backup file, start from 0'
+		print('No backup file, start from 0')
 		backup_id = -1
 		backup_present = False
 		backup = None
@@ -142,9 +134,9 @@ def try_find_backup():
 
 backup, backup_id, backup_present = try_find_backup()
 
-print "Noise ", W
-print "Characteristic, full, step times, n_steps"
-print lyap.tau_char, lyap.time, lyap.step, lyap.n_steps
+print("Noise ", W)
+print("Characteristic, full, step times, n_steps")
+print(lyap.tau_char, lyap.time, lyap.step, lyap.n_steps)
 
 if backup_present == False:
 	num_good = 0
@@ -213,15 +205,15 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 	if i_traj < curr_traj:
 		continue
 	if num_good > needed_trajs.shape[0] - 1:
-		print 'We really have enough trajs, exit!'
+		print('We really have enough trajs, exit!')
 		break
 	for j_traj, pert_seed in enumerate(perturb_seeds):
 		if j_traj < curr_seed:
 			continue
 		if num_good > needed_trajs.shape[0] - 1:
-			print 'We really have enough trajs, exit!'
+			print('We really have enough trajs, exit!')
 			break
-		for k_traj in xrange(N_backups):
+		for k_traj in range(N_backups):
 			if k_traj <= backup_id:
 				continue
 			backup, backup_id, backup_present = try_find_backup()
@@ -234,7 +226,7 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 			lyap.inext = 1
 
 			if backup_present:
-				print 'Backup found: ', backup_id, k_traj
+				print('Backup found: ', backup_id, k_traj)
 				# err = init_instability(lyap, traj_seed, from_backup=True, init_conds=backup['init_conds'])
 				# lyap.traj_seed = traj_seed
 				# lyap.pert_seed = pert_seed
@@ -248,14 +240,14 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 				while err == 1:
 					traj_seed = np.random.randint(100000)
 					pert_seed = np.random.randint(100000)
-					print "SEED: ", traj_seed
+					print("SEED: ", traj_seed)
 					err = init_instability(lyap, traj_seed)
 					if err == 1:
-						print 'Bad trajectory! ', i_traj
-				print 'Good trajectory found!'
+						print('Bad trajectory! ', i_traj)
+				print('Good trajectory found!')
 
 			else:
-				print 'No backup found, going to find a track'
+				print('No backup found, going to find a track')
 				np.random.seed()
 				traj_seed = np.random.randint(100000)
 				pert_seed = np.random.randint(100000)
@@ -264,73 +256,93 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 				err = 1
 				while err == 1:
 					traj_seed = np.random.randint(100000)
-					print "SEED: ", traj_seed
+					print("SEED: ", traj_seed)
 					err = init_instability(lyap, traj_seed)
 					if err == 1:
-						print 'Bad trajectory! ', i_traj
-				print 'Good trajectory found!'
+						print('Bad trajectory! ', i_traj)
+				print('Good trajectory found!')
 				lyap.n_steps = int(time_backup / step)
 				lyap.time = time_backup
 				save_backup(k_traj)
 				continue
 
-			# print '00000', lyap.X[:,:,:,0]
-			lyap.n_steps = int(0.5/lyap.step)
-			lyap.run_dynamics(no_pert=False)
+			x0 = lyap.X[:,:,:,0].copy()
+			y0 = lyap.Y[:,:,:,0].copy()
+			lyap.X *= 0
+			lyap.Y *= 0
+			lyap.RHO *= 0
+			lyap.THETA *= 0
+			lyap.icurr = 0
+			lyap.inext = 1
 
-			# print lyap.icurr, lyap.inext
+			lyap.set_init_XY(x0, y0)
+			lyap.step = step_small
+			lyap.run_relaxation(E_desired=(-4. + lyap.beta_amplitude/2)*lyap.N_wells, temperature_dependent_rate=False, N_max=200)
 
 			x0 = lyap.X[:,:,:,lyap.icurr-1].copy()
 			y0 = lyap.Y[:,:,:,lyap.icurr-1].copy()
-			# print '11111', lyap.X[:,:,:,1]
-			# print '22222', lyap.X[:,:,:,2]
-			# print x0, y0
-
-			init_conds = []
-			init_energies = []
-			lyap.run_relaxation(E_desired=1e+7, N_max=50)
-			for i in xrange(lyap.n_steps):
-				init_energies.append(lyap.energy[i])
-				init_conds.append((lyap.X[:,:,:,i].copy(),lyap.Y[:,:,:,i].copy()))
-
-			#E_max = lyap.calc_energy_XY(lyap.X[:,:,:,0],lyap.Y[:,:,:,0], 0)
-			lyap.set_init_XY(x0, y0)
-			lyap.run_relaxation(E_desired=-1e+7, N_max=50)
-			for i in xrange(lyap.n_steps):
-				init_energies.append(lyap.energy[i])
-				init_conds.append((lyap.X[:,:,:,i].copy(),lyap.Y[:,:,:,i].copy()))
-			init_energies = np.array(init_energies)
-			E_max = np.max(init_energies)
-			E_min = np.min(init_energies)
-			isort_en = np.argsort(init_energies)
-			init_energies = init_energies[isort_en]
-			#init_conds = init_conds[isort_en]
 
 			E0 = lyap.calc_energy_XY(x0, y0, 0)
+			
+			lyap.X *= 0
+			lyap.Y *= 0
+			lyap.RHO *= 0
+			lyap.THETA *= 0
+			lyap.icurr = 0
+			lyap.inext = 1
 
-			# lyap.run_relaxation(E_desired=1e+7, N_max=3000)
-			# E_max = lyap.calc_energy_XY(lyap.X[:,:,:,0],lyap.Y[:,:,:,0], 0)
-			# lyap.set_init_XY(x0, y0)
-			# lyap.run_relaxation(E_desired=-1e+7, N_max=3000)
-			# E_min = lyap.calc_energy_XY(lyap.X[:,:,:,0],lyap.Y[:,:,:,0], 0)
+			lyap.set_init_XY(x0, y0)
+			lyap.step = step_large
+			lyap.n_steps = 200
 
-			E_min_all = (-2. + 3./2) * 8000
-			# E_min_all = (0.5 + 3./2) * 8000
-			E_max_all = (4 + 3./2) * 8000
+			lyap.run_dynamics(no_pert=False)
 
-			Energies = np.linspace(E_min_all, E_max_all, num=15)
-			energy_i = [[] for ix in xrange(Energies.shape[0])]
-			order_parameter_i = [[] for ix in xrange(Energies.shape[0])]
-			temperature_i = [[] for ix in xrange(Energies.shape[0])]
-			temperature_Amp_i = np.zeros(Energies.shape[0])
-			temperature_Ph_i = np.zeros(Energies.shape[0])
+			x0 = lyap.X[:,:,:,lyap.icurr-1].copy()
+			y0 = lyap.Y[:,:,:,lyap.icurr-1].copy()
 
-			for j in np.nonzero(np.logical_and(Energies > E_min, Energies < E_max))[0]:#xrange(Energies.shape[0]):
-				print 'Energy %f' % Energies[j]
-				i_en = np.nonzero(init_energies >= Energies[j])[0][0]
+			E_min_all = (-2.7 + lyap.beta_amplitude/2.) * lyap.N_wells
+			E_max_all = (3 + lyap.beta_amplitude/2.) * lyap.N_wells
 
-				x1 = init_conds[isort_en[i_en]][0].copy()
-				y1 = init_conds[isort_en[i_en]][1].copy()
+			Energies = np.linspace(E_min_all, E_max_all, num=40)
+			gammas = np.linspace(0.1, 2., num=40)
+			#Efinal = (np.linspace(-4,1, num=40) + lyap.beta_amplitude/2) * lyap.N_wells
+			Efinal = (np.zeros(40) - 4. + lyap.beta_amplitude/2) * lyap.N_wells
+			#Efinal = (np.linspace(-4,1, num=40) + 10./2) * 1000
+			T_conservative = 40.
+			dt_conservative = 0.05
+			n_conservative = int(T_conservative/dt_conservative)
+
+			T_quench = 0.
+			dt_quench = 0.05
+			n_quench = int(T_quench/dt_quench)
+
+			T_conservative_post_quench = 0.
+			dt_conservative_post_quench = 0.05
+			n_conservative_post_quench = int(T_conservative_post_quench/dt_conservative_post_quench)
+
+			total_time_steps = n_conservative + n_quench + n_conservative_post_quench
+
+			energy_i = np.full((1, Energies.shape[0],) + (total_time_steps,), np.nan)
+			order_parameter_i = np.full((1, Energies.shape[0],) + lyap.X.shape[:-1] + (total_time_steps,), np.nan, dtype=np.complex64)
+			order_parameter_i_1 = np.full((1, Energies.shape[0],) + lyap.X.shape[:-1] + (total_time_steps,), np.nan, dtype=np.complex64)
+			temperature_i = np.full((1, Energies.shape[0],) + (total_time_steps,), np.nan)
+			temperature_Amp_i = np.full((1, Energies.shape[0],) + (total_time_steps,), np.nan)
+			temperature_Ph_i = np.full((1, Energies.shape[0],) + (total_time_steps,), np.nan)
+
+			x1 = x0.copy()
+			y1 = y0.copy()
+
+			idx_iterations = np.hstack(
+										(np.hstack((np.nonzero(Energies > E0)[0], (-1))),
+										 np.nonzero(np.logical_not(Energies > E0))[0][::-1])
+									  )
+			for j in idx_iterations:
+				if j == -1:
+					continue
+				x1 = x0.copy()
+				y1 = y0.copy()
+
+				print('Energy %f' % Energies[j])
 
 				lyap.X *= 0
 				lyap.Y *= 0
@@ -339,48 +351,21 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 				lyap.icurr = 0
 				lyap.inext = 1
 
-				lyap.n_steps = int(1./lyap.step)
 				lyap.set_init_XY(x1, y1)
-				lyap.run_dynamics(no_pert=False)
-
+				lyap.step = dt_conservative
+				lyap.n_steps = n_conservative
+				lyap.gamma = gammas[j]
+				#lyap.run_dynamics(no_pert=False)
+				lyap.run_relaxation(no_pert=False, E_desired=-1e+9, temperature_dependent_rate=True,
+									N_max=lyap.n_steps)
 				for istep in np.arange(lyap.n_steps):
-					energy_i[j].append(lyap.calc_energy_XY(lyap.X[:,:,:,istep],lyap.Y[:,:,:,istep], 0))
-					order_parameter_i[j].append(lyap.X[:,:,:,istep] + 1j * lyap.Y[:,:,:,istep])
-					#if istep % 10 == 0:
-					#	T, Es, Ns = lyap.calc_numerical_temperature(lyap.X[:, :, :, istep],
-					#														lyap.Y[:, :, :, istep], N_samples=10000)
-					#else:
-					#	T = -1.
-					T = -1.
-					temperature_i[j].append(T)
+					energy_i[0,j,istep] = lyap.calc_energy_XY(lyap.X[:,:,:,istep],lyap.Y[:,:,:,istep], 0)
+					order_parameter_i[0,j,:,:,:,istep] = lyap.X[:,:,:,istep] + 1j * lyap.Y[:,:,:,istep]
+					order_parameter_i_1[0,j,:,:,:,istep] = lyap.X[:,:,:,istep] + 1j * lyap.Y[:,:,:,istep]
 
-				x2 = lyap.X[:,:,:,lyap.icurr-1].copy()
-				y2 = lyap.Y[:,:,:,lyap.icurr-1].copy()
-
-				lyap_dynamic.X *= 0
-				lyap_dynamic.Y *= 0
-				lyap_dynamic.RHO *= 0
-				lyap_dynamic.THETA *= 0
-				lyap_dynamic.icurr = 0
-				lyap_dynamic.inext = 1
-
-				lyap_dynamic.set_init_XY(x2,y2)
-				lyap_dynamic.n_steps = int(10./step)
-				lyap_dynamic.run_relaxation(no_pert=False, E_desired=-1e+7, N_max=lyap_dynamic.n_steps)
-
-				for istep in np.arange(lyap_dynamic.n_steps):
-					energy_i[j].append(lyap_dynamic.calc_energy_XY(lyap_dynamic.X[:,:,:,istep],lyap_dynamic.Y[:,:,:,istep], 0))
-					order_parameter_i[j].append(lyap_dynamic.X[:,:,:,istep] + 1j * lyap_dynamic.Y[:,:,:,istep])
-					#if istep % 10 == 0:
-					#	T, Es, Ns = lyap.calc_numerical_temperature(lyap_dynamic.X[:, :, :, istep],
-					#														lyap_dynamic.Y[:, :, :, istep], N_samples=10000)
-					#else:
-					#	T = -1.
-					T = -1.
-					temperature_i[j].append(T)
 
 			if backup_present:
-				print 'Backup present, go adding results'
+				print('Backup present, go adding results')
 				num_good = backup['num_good']
 				lmbdas = backup['lambdas']
 				lmbdas_no_regr = backup['lambdas_no_regr']
@@ -397,61 +382,34 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 				time_finished = backup['time_finished']
 				backup_id = backup['backup_id']
 
-				if len(energies) == 0:
-					energies_true = [energy_i]
-					temperatures = [temperature_i]
-					order_parameters = [order_parameter_i]
+
+				if len(energies_true) == 0:
+					energies_true = energy_i
+					temperatures = temperature_i
+					temperatures_Ph = temperature_Ph_i
+
+					temperatures_Amp = temperature_Amp_i
+					order_parameters = order_parameter_i
+					order_parameters_1 = order_parameter_i_1
 				else:
-					energies_true = energies_true + [energy_i]
-					temperatures = temperatures + [temperature_i]
-					order_parameters = order_parameters + [order_parameter_i]
-				#
-				# lmbdas = np.hstack((lmbdas, lyap.lambdas[:-1]))
-				# lmbdas_no_regr =  np.hstack((lmbdas_no_regr, lyap.lambdas_no_regr[:-1]))
-				# chosen_trajs.append((traj_seed, pert_seed))
-				# effective_nonlinearity = np.hstack((effective_nonlinearity, lyap.effective_nonlinearity))
+					# print(energies_true.shape, energy_i.shape)
+					energies_true = np.concatenate((energies_true, energy_i), axis=0)
+					temperatures = np.concatenate((temperatures, temperature_i), axis=0)
+					temperatures_Amp = np.concatenate((temperatures_Amp, temperature_Amp_i), axis=0)
+					temperatures_Ph = np.concatenate((temperatures_Ph, temperature_Ph_i), axis=0)
+					# print('stack axis 0: ', order_parameters.shape, order_parameter_i.shape)
+					order_parameters = np.concatenate((order_parameters, order_parameter_i), axis=0)
+					order_parameters_1 = np.concatenate((order_parameters_1, order_parameter_i_1), axis=0)
+
 				energies = np.hstack((energies, lyap.energy))
-				# print energies
-				# distances = np.hstack((distances, lyap.distance))
+
 				numb_of_part = np.hstack((numb_of_part, lyap.number_of_particles))
-				# print lyap.lambdas
-				# print lyap.lambdas_no_regr
 
 				save_backup(k_traj)
-				# np.savez_compressed(vis_backup.filename(my_id),
-				#          lambdas=lmbdas, lambdas_no_regr=lmbdas_no_regr,
-				#          eff_nonl=effective_nonlinearity,
-				#          numb_of_part=numb_of_part, energies=energies,
-				#          chosen=chosen_trajs, step=lyap.step, time=lyap.time, n_steps=lyap.n_steps,
-				#          my_info=[seed_from, seed_to, my_id], needed_trajs=needed_trajs,
-				#          checksum=lyap.consistency_checksum, error_code=lyap.error_code,
-				#          distance=lyap.distance)
 		num_good += 1
 
-	# plt.semilogy(lyap.T, lyap.distance)
-	# np.savez_compressed(vis.filename(my_id) + '_traj_' + str(i_traj),
-	#          step=lyap.step, time=lyap.time,
-	#          traj_seed=lyap.traj_seed,
-	#          pert_seed=lyap.pert_seed,
-	#          disorder_seed=lyap.disorder_seed,
-	#          disorder=lyap.e_disorder,
-	#          n_steps=lyap.n_steps,
-	#          wells_indices=lyap.wells_indices,
-	#          beta=lyap.beta, W=lyap.W,
-	#          J=lyap.J, N_tuple=lyap.N_tuple,
-	#          energy=lyap.energy, number_of_particles=lyap.number_of_particles,
-	#          eff_nonl=lyap.effective_nonlinearity,
-	#          error_code=lyap.error_code, checksum=lyap.consistency_checksum,
-	#          distance=lyap.distance,
-	#          x=lyap.X, y=lyap.Y, x1=lyap.X1, y1=lyap.Y1,
-	#          lambdas=lyap.lambdas, lambdas_no_regr=lyap.lambdas_no_regr,
-	#          hist2d=lyap.histograms, hist1d=lyap.rho_histograms,
-	#          hist2d1=lyap.histograms1, hist1d1=lyap.rho_histograms1)
-
-# plt.savefig(vis.HOMEDIR + 'pics/Lyap_' + unique_id + '_' + str(my_id)+'.png', format='png', dpi=100)
-
-print "Error code: ", lyap.error_code
-print "\n\nChecksum: ", lyap.consistency_checksum
+print("Error code: ", lyap.error_code)
+print("\n\nChecksum: ", lyap.consistency_checksum)
 
 np.savez_compressed(vis.filename(my_id),
          lambdas=lmbdas, lambdas_no_regr=lmbdas_no_regr,
