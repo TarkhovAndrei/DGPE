@@ -74,8 +74,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="243">
-              <caret line="815" selection-start-line="815" selection-end-line="815" />
+            <state relative-caret-position="332">
+              <caret line="1146" column="21" lean-forward="true" selection-start-line="1146" selection-start-column="21" selection-end-line="1146" selection-end-column="21" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -157,7 +157,12 @@
       <find>torch_gamma_reduction</find>
       <find>scipy</find>
       <find>'scipy'</find>
+      <find>calc_energy_XY</find>
       <find>'torch'</find>
+      <find>'tf'</find>
+      <find>tensorflow</find>
+      <find>torch</find>
+      <find>tf</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -584,8 +589,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="243">
-          <caret line="815" selection-start-line="815" selection-end-line="815" />
+        <state relative-caret-position="332">
+          <caret line="1146" column="21" lean-forward="true" selection-start-line="1146" selection-start-column="21" selection-end-line="1146" selection-end-column="21" />
           <folding>
             <element signature="e#1580#1598#0" expanded="true" />
           </folding>
