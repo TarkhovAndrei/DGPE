@@ -1,5 +1,5 @@
 '''
-Copyright <2017> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
+Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
 https://github.com/TarkhovAndrei/DGPE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -12,7 +12,7 @@ the citation of the present code shall be provided according to the rule:
 
     "Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
     source code from the GitHub repository https://github.com/TarkhovAndrei/DGPE
-    was used to obtain the presented results, 2017."
+    was used to obtain the presented results, 2019."
 
 2) The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
@@ -36,8 +36,8 @@ sys.stderr = sys.stdout
 
 def init_instability(inst, traj_seed):
 	inst.generate_init('random', traj_seed, 100.)
-	# delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
-	delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
+	delta = (2. * np.sqrt(1.0 * inst.N_part/inst.N_wells)) * np.random.rand()
+	# delta = (2. * np.sqrt(1.0 * inst.N_part)) * np.random.rand()
 	x0, y0, err = inst.E_const_perturbation_XY(inst.X[:,:,:,0], inst.Y[:,:,:,0], delta)
 	x1, y1 = inst.constant_perturbation_XY(x0,y0)
 	inst.set_init_XY(x0,y0,x1,y1)
@@ -60,7 +60,7 @@ else:
 needed_trajs = np.arange(seed_from, seed_to)
 perturb_seeds = np.arange(123,124)#(2381,2382)#(100, 110)#(106,108)#(97,98)#(97, 100)#(15, 18) #[53, 12, 20, 87]
 
-time = 400 * 80.
+time = 1.
 # time = 1.
 # time = 100. * 15
 # step = 0.00015625
@@ -72,13 +72,13 @@ lyap = LyapunovGenerator(N_part_per_well=100,
                          W=W, disorder_seed=53,
                          # N_wells=(10,1,1), dimensionality=1, threshold_XY_to_polar=0.25,
                          # N_wells=(10,10,1), dimensionality=2, threshold_XY_to_polar=0.25,
-                         N_wells=(10,1,1), dimensionality=1, threshold_XY_to_polar=0.25,
-                         reset_steps_duration=3000,
+                         N_wells=(1000,1,1), dimensionality=1, threshold_XY_to_polar=0.25,
+                         reset_steps_duration=5,
                          # reset_steps_duration=150,
                          time=time, step=step)
 
 grname = 'GPE_lyap_' + unique_id
-vis = Visualisation(is_local=0, GROUP_NAMES=grname)
+vis = Visualisation(is_local=1, GROUP_NAMES=grname)
 
 print "Noise ", W
 print "Characteristic, full, step times, n_steps"
@@ -104,9 +104,14 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 		np.random.seed(traj_seed)
 		lyap.traj_seed = traj_seed
 		lyap.pert_seed = pert_seed
-		err = init_instability(lyap, traj_seed)
-		if err == 1:
-			print 'Bad trajectory! ', i_traj
+		err = 1
+		while err == 1:
+			traj_seed = np.random.randint(100000)
+			print "SEED: ", traj_seed
+			err = init_instability(lyap, traj_seed)
+			if err == 1:
+				print 'Bad trajectory! ', i_traj
+		print 'Good trajectory! ', traj_seed
 		lyap.run_dynamics()
 		lmbdas.append(lyap.lambdas)
 		lmbdas_no_regr.append(lyap.lambdas_no_regr)
@@ -117,8 +122,8 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 		print lyap.lambdas
 		print lyap.lambdas_no_regr
 		num_good += 1
-		plt.semilogy(lyap.T, lyap.distance)
-		np.savez(vis.filename(my_id) + '_traj_' + str(i_traj),
+		# plt.semilogy(lyap.T, lyap.distance)
+		np.savez_compressed(vis.filename(my_id) + '_traj_' + str(i_traj),
 		         step=lyap.step, time=lyap.time,
 		         traj_seed=lyap.traj_seed,
 		         pert_seed=lyap.pert_seed,
@@ -137,12 +142,14 @@ for i_traj, traj_seed in enumerate(needed_trajs):
 		         hist2d=lyap.histograms, hist1d=lyap.rho_histograms,
 		         hist2d1=lyap.histograms1, hist1d1=lyap.rho_histograms1)
 
-plt.savefig(vis.HOMEDIR + 'pics/Lyap_' + unique_id + '_' + str(my_id)+'.png', format='png', dpi=100)
+# plt.savefig(vis.HOMEDIR + 'pics/Lyap_' + unique_id + '_' + str(my_id)+'.png', format='png', dpi=100)
 
 print "Error code: ", lyap.error_code
 print "\n\nChecksum: ", lyap.consistency_checksum
 
-np.savez(vis.filename(my_id),
+print lyap.energy
+
+np.savez_compressed(vis.filename(my_id),
          lambdas=lmbdas, lambdas_no_regr=lmbdas_no_regr,
          eff_nonl=effective_nonlinearity,
          numb_of_part=numb_of_part, energies=energies,
