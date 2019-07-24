@@ -60,6 +60,7 @@ class DynamicsGenerator(object):
 		self.gamma = kwargs.get('gamma', 0.01)
 
 		self.use_matrix_operations = kwargs.get('use_matrix_operations', True)
+		self.use_matrix_operations_for_energy = kwargs.get('use_matrix_operations_for_energy', True)
 		self.h_ext_x = kwargs.get('h_ext_x', 0.)
 		self.h_ext_y = kwargs.get('h_ext_y', 0.)
 		self.lam1 = kwargs.get('lam1', 1.)
@@ -551,50 +552,58 @@ class DynamicsGenerator(object):
 
 		self.set_constants_of_motion_local(0, 0)
 
-		icurr = 0
-		inext = 1
-		self.icurr = 0
-		self.inext = 1
 
-		for i in range(1, self.n_steps):
-			if self.integrator == 'scipy':
-				psi = ODE_result[i,:]
-				self.X[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
-				self.Y[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
-				self.RHO[:,:,:,inext], self.THETA[:,:,:,inext] = self.from_XY_to_polar(self.X[:,:,:,inext], self.Y[:,:,:,inext])
-			elif self.integrator == 'personal':
-				if (np.any(self.RHO[:,:,:,icurr] ** 2 < self.threshold_XY_to_polar)):
-					if (i == 1):
-						self.psiNextXY = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
-					psi = self.rk4_step_exp_XY(self.psiNextXY)
-					self.psiNextXY = psi
+		if self.use_matrix_operations_for_energy:
+			self.X = np.moveaxis(ODE_result[:,:self.N_wells], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
+			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
+			self.icurr = self.n_steps - 1
+			self.inext = self.n_steps
+			self.energy = self.calc_energy_XY_global(ODE_result)
+			self.number_of_particles = self.calc_nop_XY_global(ODE_result)
+		else:
+			icurr = 0
+			inext = 1
+			self.icurr = 0
+			self.inext = 1
+			for i in range(1, self.n_steps):
+				if self.integrator == 'scipy':
+					psi = ODE_result[i,:]
 					self.X[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
 					self.Y[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
 					self.RHO[:,:,:,inext], self.THETA[:,:,:,inext] = self.from_XY_to_polar(self.X[:,:,:,inext], self.Y[:,:,:,inext])
-					self.psiNext = np.hstack((self.RHO[:,:,:,inext].flatten(), self.THETA[:,:,:,inext].flatten()))
+				elif self.integrator == 'personal':
+					if (np.any(self.RHO[:,:,:,icurr] ** 2 < self.threshold_XY_to_polar)):
+						if (i == 1):
+							self.psiNextXY = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
+						psi = self.rk4_step_exp_XY(self.psiNextXY)
+						self.psiNextXY = psi
+						self.X[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
+						self.Y[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
+						self.RHO[:,:,:,inext], self.THETA[:,:,:,inext] = self.from_XY_to_polar(self.X[:,:,:,inext], self.Y[:,:,:,inext])
+						self.psiNext = np.hstack((self.RHO[:,:,:,inext].flatten(), self.THETA[:,:,:,inext].flatten()))
+					else:
+						if (i == 1):
+							self.psiNext = np.hstack((self.RHO[:,:,:,0].flatten(), self.THETA[:,:,:,0].flatten()))
+						psi = self.rk4_step_exp(self.psiNext)
+						self.psiNext = psi
+						self.RHO[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
+						self.THETA[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
+						self.X[:,:,:,inext], self.Y[:,:,:,inext] = self.from_polar_to_XY(self.RHO[:,:,:,inext], self.THETA[:,:,:,inext])
+						self.psiNextXY = np.hstack((self.X[:,:,:,inext].flatten(), self.Y[:,:,:,inext].flatten()))
+
+				self.set_constants_of_motion_local(i, inext)
+
+				if self.calculation_type == 'lyap':
+					icurr = 1 - icurr
+					inext = 1 - inext
+					self.icurr = 1 - self.icurr
+					self.inext = 1 - self.inext
 				else:
-					if (i == 1):
-						self.psiNext = np.hstack((self.RHO[:,:,:,0].flatten(), self.THETA[:,:,:,0].flatten()))
-					psi = self.rk4_step_exp(self.psiNext)
-					self.psiNext = psi
-					self.RHO[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
-					self.THETA[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
-					self.X[:,:,:,inext], self.Y[:,:,:,inext] = self.from_polar_to_XY(self.RHO[:,:,:,inext], self.THETA[:,:,:,inext])
-					self.psiNextXY = np.hstack((self.X[:,:,:,inext].flatten(), self.Y[:,:,:,inext].flatten()))
+					icurr = icurr + 1
+					inext = inext + 1
 
-			self.set_constants_of_motion_local(i, inext)
-
-			if self.calculation_type == 'lyap':
-				icurr = 1 - icurr
-				inext = 1 - inext
-				self.icurr = 1 - self.icurr
-				self.inext = 1 - self.inext
-			else:
-				icurr = icurr + 1
-				inext = inext + 1
-
-				self.icurr = icurr + 1
-				self.inext = inext + 1
+					self.icurr = icurr + 1
+					self.inext = inext + 1
 
 
 	def run_quench(self, no_pert=False, E_desired=0,temperature_dependent_rate=False, N_max=1e+7):
@@ -739,84 +748,97 @@ class DynamicsGenerator(object):
 										  t_eval=ts, jac=self.J_func_full_eq_of_motion)
 			ODE_result = ODE_result_object.y.T
 
-		icurr = 0
-		inext = 1
-		self.icurr = 0
-		self.inext = 1
+		if self.use_matrix_operations_for_energy:
+			self.X = np.moveaxis(ODE_result[:,:self.N_wells], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
+			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
+			self.energy = self.calc_energy_XY_global(ODE_result)
+			self.number_of_particles = self.calc_nop_XY_global(ODE_result)
+			idx_desired = np.nonzero((self.energy[:-1] - E_desired) * (self.energy[1:] - E_desired) < 0)[0]
+			if len(idx_desired.shape) == 1:
+				self.n_steps = idx_desired
+			else:
+				self.n_steps = 1
+			self.icurr = self.n_steps - 1
+			self.inext = self.n_steps
+		else:
+			icurr = 0
+			inext = 1
+			self.icurr = 0
+			self.inext = 1
 
-		if self.integrator == 'scipy':
-			i = 1
-			while ((Ecurr - E_desired) * (Enext - E_desired) > 0) and (i < N_max):
-				self.set_constants_of_motion_local(i - 1, icurr)
-				Ecurr = self.energy[i - 1]
-				psi = ODE_result[i, :]
-				self.X[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
-				self.Y[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
-				self.RHO[:, :, :, inext], self.THETA[:, :, :, inext] = self.from_XY_to_polar(self.X[:, :, :, inext],
-																							 self.Y[:, :, :, inext])
-
-				self.set_constants_of_motion_local(i, inext)
-				Enext = self.energy[i]
-
-				if self.calculation_type == 'lyap':
-					icurr = 1 - icurr
-					inext = 1 - inext
-					self.icurr = 1 - self.icurr
-					self.inext = 1 - self.inext
-				else:
-					icurr = icurr + 1
-					inext = inext + 1
-
-					self.icurr = icurr + 1
-					self.inext = inext + 1
-				i += 1
-			self.n_steps = i
-
-		elif self.integrator == 'personal':
-			i = 1
-			while ((Ecurr - E_desired) * (Enext - E_desired) > 0) and (i < N_max):
-				self.set_constants_of_motion_local(i - 1, icurr)
-				Ecurr = self.energy[i-1]
-
-				if (np.any(self.RHO[:, :, :, icurr] ** 2 < self.threshold_XY_to_polar)):
-					if (i == 1):
-						self.psiNextXY = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
-					psi = self.rk4_slow_relax_step_exp_XY(self.psiNextXY)
-					self.psiNextXY = psi
+			if self.integrator == 'scipy':
+				i = 1
+				while ((Ecurr - E_desired) * (Enext - E_desired) > 0) and (i < N_max):
+					self.set_constants_of_motion_local(i - 1, icurr)
+					Ecurr = self.energy[i - 1]
+					psi = ODE_result[i, :]
 					self.X[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
 					self.Y[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
 					self.RHO[:, :, :, inext], self.THETA[:, :, :, inext] = self.from_XY_to_polar(self.X[:, :, :, inext],
 																								 self.Y[:, :, :, inext])
-					self.psiNext = np.hstack((self.RHO[:, :, :, inext].flatten(), self.THETA[:, :, :, inext].flatten()))
-				else:
-					if (i == 1):
-						self.psiNext = np.hstack((self.RHO[:, :, :, 0].flatten(), self.THETA[:, :, :, 0].flatten()))
-					psi = self.rk4_slow_relax_step_exp(self.psiNext)
-					self.psiNext = psi
-					self.RHO[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
-					self.THETA[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
-					self.X[:, :, :, inext], self.Y[:, :, :, inext] = self.from_polar_to_XY(self.RHO[:, :, :, inext],
-																						   self.THETA[:, :, :, inext])
-					self.psiNextXY = np.hstack((self.X[:, :, :, inext].flatten(), self.Y[:, :, :, inext].flatten()))
 
-				self.set_constants_of_motion_local(i, inext)
-				Enext = self.energy[i]
+					self.set_constants_of_motion_local(i, inext)
+					Enext = self.energy[i]
 
-				if self.calculation_type == 'lyap':
-					icurr = 1 - icurr
-					inext = 1 - inext
-					self.icurr = 1 - self.icurr
-					self.inext = 1 - self.inext
+					if self.calculation_type == 'lyap':
+						icurr = 1 - icurr
+						inext = 1 - inext
+						self.icurr = 1 - self.icurr
+						self.inext = 1 - self.inext
+					else:
+						icurr = icurr + 1
+						inext = inext + 1
 
-				else:
-					icurr = icurr + 1
-					inext = inext + 1
+						self.icurr = icurr + 1
+						self.inext = inext + 1
+					i += 1
+				self.n_steps = i
 
-					self.icurr = icurr + 1
-					self.inext = inext + 1
-				i += 1
+			elif self.integrator == 'personal':
+				i = 1
+				while ((Ecurr - E_desired) * (Enext - E_desired) > 0) and (i < N_max):
+					self.set_constants_of_motion_local(i - 1, icurr)
+					Ecurr = self.energy[i-1]
 
-			self.n_steps = i
+					if (np.any(self.RHO[:, :, :, icurr] ** 2 < self.threshold_XY_to_polar)):
+						if (i == 1):
+							self.psiNextXY = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
+						psi = self.rk4_slow_relax_step_exp_XY(self.psiNextXY)
+						self.psiNextXY = psi
+						self.X[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
+						self.Y[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
+						self.RHO[:, :, :, inext], self.THETA[:, :, :, inext] = self.from_XY_to_polar(self.X[:, :, :, inext],
+																									 self.Y[:, :, :, inext])
+						self.psiNext = np.hstack((self.RHO[:, :, :, inext].flatten(), self.THETA[:, :, :, inext].flatten()))
+					else:
+						if (i == 1):
+							self.psiNext = np.hstack((self.RHO[:, :, :, 0].flatten(), self.THETA[:, :, :, 0].flatten()))
+						psi = self.rk4_slow_relax_step_exp(self.psiNext)
+						self.psiNext = psi
+						self.RHO[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
+						self.THETA[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
+						self.X[:, :, :, inext], self.Y[:, :, :, inext] = self.from_polar_to_XY(self.RHO[:, :, :, inext],
+																							   self.THETA[:, :, :, inext])
+						self.psiNextXY = np.hstack((self.X[:, :, :, inext].flatten(), self.Y[:, :, :, inext].flatten()))
+
+					self.set_constants_of_motion_local(i, inext)
+					Enext = self.energy[i]
+
+					if self.calculation_type == 'lyap':
+						icurr = 1 - icurr
+						inext = 1 - inext
+						self.icurr = 1 - self.icurr
+						self.inext = 1 - self.inext
+
+					else:
+						icurr = icurr + 1
+						inext = inext + 1
+
+						self.icurr = icurr + 1
+						self.inext = inext + 1
+					i += 1
+
+				self.n_steps = i
 
 		self.temperature_dependent_rate = False
 
@@ -1320,6 +1342,42 @@ class DynamicsGenerator(object):
 					else:
 						E_new += (-self.J * (x[j] * x[k] + y[j] * y[k]))
 		return E_new
+
+	def calc_energy_XY_global(self, PSI):
+		# PSI[time, 2*N_wells]
+		if (self.use_matrix_operations_for_energy):
+			return np.sum(self.beta_flat / 2. * ((PSI[:,:self.N_wells] ** 2 + PSI[:,self.N_wells:] ** 2) ** 2) +
+			self.e_disorder_flat * (PSI[:,:self.N_wells] ** 2 + PSI[:,self.N_wells:] ** 2)
+			-self.J * (PSI[:,self.N_wells:] * (
+					PSI[:,self.N_wells:][:,self.nn_idx_1] +
+					PSI[:,self.N_wells:][:,self.nn_idx_2] +
+					PSI[:,self.N_wells:][:,self.nn_idy_1] +
+					PSI[:,self.N_wells:][:,self.nn_idy_2] +
+					self.anisotropy * (PSI[:,self.N_wells:][:,self.nn_idz_1] +
+									   PSI[:,self.N_wells:][:,self.nn_idz_2]
+									   )
+			) +
+									   PSI[:, :self.N_wells] * (
+											   PSI[:,:self.N_wells][:,self.nn_idx_1] +
+											   PSI[:,:self.N_wells][:,self.nn_idx_2] +
+											   PSI[:,:self.N_wells][:,self.nn_idy_1] +
+											   PSI[:,:self.N_wells][:,self.nn_idy_2] +
+											   self.anisotropy * (PSI[:,:self.N_wells][:,self.nn_idz_1] +
+																  PSI[:,:self.N_wells][:,self.nn_idz_2]
+																  )
+									   )
+									   ) +
+				self.h_dis_x_flat * PSI[:,:self.N_wells] + self.h_dis_y_flat * PSI[:,self.N_wells:], axis=1)
+		else:
+			return np.zeros(self.n_steps, dtype=self.FloatPrecision)
+
+	def calc_nop_XY_global(self, PSI):
+		# PSI[time, 2*N_wells]
+		if (self.use_matrix_operations_for_energy):
+			return np.sum((PSI[:,:self.N_wells] ** 2 + PSI[:,self.N_wells:] ** 2), axis=1)
+		else:
+			return np.zeros(self.n_steps, dtype=self.FloatPrecision)
+
 
 	def calc_angular_momentum_XY(self, x, y):
 		L = 0
