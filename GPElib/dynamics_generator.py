@@ -33,11 +33,12 @@ from scipy.integrate import odeint, solve_ivp
 from scipy.sparse import dok_matrix
 import multiprocessing as mp
 from time import time
-# import tensorflow as tf
 
 import torch
 import torchdiffeq
-from torch.autograd import Variable
+
+from .gpu_dgpe_conservative import DGPE_ODE
+from .gpu_dgpe_relaxation import DGPE_ODE_RELAXATION
 
 class DynamicsGenerator(object):
 	def __init__(self, **kwargs):
@@ -45,7 +46,10 @@ class DynamicsGenerator(object):
 
 		self.FloatPrecision = kwargs.get('FloatPrecision', np.float64)
 		self.torch_FloatPrecision = kwargs.get('torch_FloatPrecision', torch.float64)
-		# self.tf_FloatPrecision = kwargs.get('tf_FloatPrecision', tf.float64)
+		torch.set_default_dtype(self.torch_FloatPrecision)
+		self.torch_gpu_id = kwargs.get('gpu_id', 0)
+		self.torch_device = torch.device('cuda:' + str(self.torch_gpu_id)
+										 if torch.cuda.is_available() else 'cpu')
 
 		self.gpu_integrator = kwargs.get('gpu_integrator', 'None')
 
@@ -56,6 +60,7 @@ class DynamicsGenerator(object):
 		self.gamma = kwargs.get('gamma', 0.01)
 
 		self.use_matrix_operations = kwargs.get('use_matrix_operations', True)
+		self.use_matrix_operations_for_energy = kwargs.get('use_matrix_operations_for_energy', True)
 		self.h_ext_x = kwargs.get('h_ext_x', 0.)
 		self.h_ext_y = kwargs.get('h_ext_y', 0.)
 		self.lam1 = kwargs.get('lam1', 1.)
@@ -244,177 +249,6 @@ class DynamicsGenerator(object):
 		self.consistency_checksum = 0
 		self.error_code = ""
 		self.configure(kwargs)
-
-		if self.gpu_integrator == 'torch':
-			self.torch_gpu_id = kwargs.get('gpu_id', 0)
-			self.torch_device = torch.device('cuda:' + str(self.torch_gpu_id)
-									   if torch.cuda.is_available() else 'cpu')
-
-			# self.tf_J = tf.placeholder(self.tf_FloatPrecision, name='J')
-			# self.tf_anisotropy = tf.placeholder(self.tf_FloatPrecision, name='anisotropy')
-
-			self.torch_J = torch.as_tensor(np.zeros(self.N_wells) + self.J, dtype=self.torch_FloatPrecision, device=self.torch_device)
-			self.torch_anisotropy = torch.as_tensor(np.zeros(self.N_wells) + self.anisotropy,
-												 dtype=self.torch_FloatPrecision, device=self.torch_device)
-
-			self.torch_gamma = torch.as_tensor(np.zeros(self.N_wells) + self.gamma, dtype=self.torch_FloatPrecision,
-											device=self.torch_device)
-
-			# self.torch_N_wells = torch.tensor(self.N_wells, tf.int64)
-
-			self.torch_nn_idx_1 = torch.as_tensor(self.nn_idx_1, dtype=torch.int64, device=self.torch_device)
-			self.torch_nn_idx_2 = torch.as_tensor(self.nn_idx_2, dtype=torch.int64, device=self.torch_device)
-			self.torch_nn_idy_1 = torch.as_tensor(self.nn_idy_1, dtype=torch.int64, device=self.torch_device)
-			self.torch_nn_idy_2 = torch.as_tensor(self.nn_idy_2, dtype=torch.int64, device=self.torch_device)
-			self.torch_nn_idz_1 = torch.as_tensor(self.nn_idz_1, dtype=torch.int64, device=self.torch_device)
-			self.torch_nn_idz_2 = torch.as_tensor(self.nn_idz_2, dtype=torch.int64, device=self.torch_device)
-
-			self.torch_first_half = torch.as_tensor(np.arange(self.N_wells), dtype=torch.int64, device=self.torch_device)
-			self.torch_second_half = torch.as_tensor(np.arange(self.N_wells, 2 * self.N_wells),
-												  dtype=torch.int64, device=self.torch_device)
-
-			# self.torch_psi = Variable(self.psi, device=self.torch_device)
-			# self.torch_x = Variable(self.psi[:self.N_wells], device=self.torch_device)
-			# self.torch_y = Variable(self.psi[self.N_wells:], device=self.torch_device)
-
-			self.torch_psi = torch.tensor(self.psi, dtype=self.torch_FloatPrecision, device=self.torch_device)
-			self.torch_x = torch.tensor(self.psi[:self.N_wells], dtype=self.torch_FloatPrecision,
-										device=self.torch_device)
-			self.torch_y = torch.tensor(self.psi[self.N_wells:], dtype=self.torch_FloatPrecision,
-										device=self.torch_device)
-
-			self.torch_dpsi = torch.tensor(self.dpsi.shape, dtype=self.torch_FloatPrecision, device=self.torch_device)
-
-			# self.torch_dpsi = Variable(np.zeros(self.dpsi.shape), device=self.torch_device)
-			self.torch_E_new = torch.tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision, device=self.torch_device)
-			# self.torch_E_new = Variable(np.zeros(self.N_wells), device=self.torch_device)
-
-			# self.torch_xL = Variable(np.zeros(self.N_wells), device=self.torch_device)
-			# self.torch_yL = Variable(np.zeros(self.N_wells), device=self.torch_device)
-
-			self.torch_xL = torch.tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision,
-										 device=self.torch_device)
-			self.torch_yL = torch.tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision,
-										 device=self.torch_device)
-
-			self.torch_zero = torch.as_tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision, device=self.torch_device)
-			# self.tf_zero = tf.placeholder(self.tf_FloatPrecision, name='zero')
-
-			self.torch_h_dis_x_flat = torch.as_tensor(self.h_dis_x_flat, dtype=self.torch_FloatPrecision, device=self.torch_device)
-			self.torch_h_dis_y_flat = torch.as_tensor(self.h_dis_y_flat, dtype=self.torch_FloatPrecision, device=self.torch_device)
-			self.torch_beta_disorder_array_flattened = torch.as_tensor(self.beta_disorder_array_flattened,
-																	dtype=self.torch_FloatPrecision, device=self.torch_device)
-			self.torch_beta = torch.as_tensor(self.beta_flat, dtype=self.torch_FloatPrecision, device=self.torch_device)
-
-			# if torch.cuda.is_available():
-			# 	self.torch_J = self.torch_J.cuda()
-			#
-			# 	self.torch_anisotropy = self.torch_anisotropy.cuda()
-			#
-			# 	self.torch_gamma = self.torch_gamma.cuda()
-			#
-			# 	# self.torch_N_wells = torch.tensor(self.N_wells, tf.int64)
-			#
-			# 	self.torch_nn_idx_1 = self.torch_nn_idx_1.cuda()
-			# 	self.torch_nn_idx_2 = self.torch_nn_idx_2.cuda()
-			# 	self.torch_nn_idy_1 = self.torch_nn_idy_1.cuda()
-			# 	self.torch_nn_idy_2 = self.torch_nn_idy_2.cuda()
-			# 	self.torch_nn_idz_1 = self.torch_nn_idz_1.cuda()
-			# 	self.torch_nn_idz_2 = self.torch_nn_idz_2.cuda()
-			#
-			# 	self.torch_psi = self.torch_psi.cuda()
-			# 	self.torch_x = self.torch_x.cuda()
-			# 	self.torch_y = self.torch_y.cuda()
-			# 	self.torch_dpsi = self.torch_dpsi.cuda()
-			#
-			# 	self.torch_E_new = self.torch_E_new.cuda()
-			# 	self.torch_xL = self.torch_xL.cuda()
-			# 	self.torch_yL = self.torch_yL.cuda()
-			#
-			# 	self.torch_zero = self.torch_zero.cuda()
-			#
-			# 	self.torch_h_dis_x_flat = self.torch_h_dis_x_flat.cuda()
-			# 	self.torch_h_dis_y_flat = self.torch_h_dis_y_flat.cuda()
-			# 	self.torch_beta_disorder_array_flattened = self.torch_beta_disorder_array_flattened.cuda()
-			# 	self.torch_beta = self.torch_beta.cuda()
-
-
-		elif self.gpu_integrator == 'tf':
-			pass
-			# self.tf_FloatPrecision = kwargs.get('tf_FloatPrecision', tf.float64)
-			# # self.tf_J = tf.placeholder(self.tf_FloatPrecision, name='J')
-			# # self.tf_anisotropy = tf.placeholder(self.tf_FloatPrecision, name='anisotropy')
-			#
-			# self.tf_J = tf.constant(self.J, self.tf_FloatPrecision)
-			# self.tf_anisotropy = tf.constant(self.anisotropy, self.tf_FloatPrecision)
-			#
-			# self.tf_gamma = tf.constant(self.gamma, self.tf_FloatPrecision)
-			# # self.tf_gamma = tf.placeholder(self.tf_FloatPrecision, name='gamma')
-			#
-			# self.tf_N_wells = tf.constant(self.N_wells, tf.int64)
-			# # self.tf_N_wells = tf.placeholder(tf.int64, name='N_wells')
-			#
-			# self.tf_nn_idx_1 = tf.constant(self.nn_idx_1, tf.int64)
-			# self.tf_nn_idx_2 = tf.constant(self.nn_idx_2, tf.int64)
-			# self.tf_nn_idy_1 = tf.constant(self.nn_idy_1, tf.int64)
-			# self.tf_nn_idy_2 = tf.constant(self.nn_idy_2, tf.int64)
-			# self.tf_nn_idz_1 = tf.constant(self.nn_idz_1, tf.int64)
-			# self.tf_nn_idz_2 = tf.constant(self.nn_idz_2, tf.int64)
-			# #
-			# # self.tf_nn_idx_1 = tf.placeholder(tf.int64, shape=self.nn_idx_1.shape, name='nn_idx_1')
-			# # self.tf_nn_idx_2 = tf.placeholder(tf.int64, shape=self.nn_idx_2.shape, name='nn_idx_2')
-			# # self.tf_nn_idy_1 = tf.placeholder(tf.int64, shape=self.nn_idy_1.shape, name='nn_idy_1')
-			# # self.tf_nn_idy_2 = tf.placeholder(tf.int64, shape=self.nn_idy_2.shape, name='nn_idy_2')
-			# # self.tf_nn_idz_1 = tf.placeholder(tf.int64, shape=self.nn_idz_1.shape, name='nn_idz_1')
-			# # self.tf_nn_idz_2 = tf.placeholder(tf.int64, shape=self.nn_idz_2.shape, name='nn_idz_2')
-			#
-			# with tf.compat.v1.variable_scope("state_vars"):
-			# 	self.tf_psi = tf.get_variable("tf_psi", self.psi.shape, dtype=self.tf_FloatPrecision, trainable=True,
-			# 								  initializer=tf.zeros_initializer)
-			# 	self.tf_x = tf.get_variable("tf_x", self.psi[:self.N_wells].shape, dtype=self.tf_FloatPrecision,
-			# 								trainable=True,
-			# 								initializer=tf.zeros_initializer)
-			# 	self.tf_y = tf.get_variable("tf_y", self.psi[self.N_wells:].shape, dtype=self.tf_FloatPrecision,
-			# 								trainable=True,
-			# 								initializer=tf.zeros_initializer)
-			# # self.tf_x = self.tf_psi[:self.N_wells]#tf.Variable(self.psi[:self.N_wells], dtype=self.tf_FloatPrecision, trainable=True)
-			# # self.tf_y = self.tf_psi[self.N_wells:]#tf.Variable(self.psi[self.N_wells:], dtype=self.tf_FloatPrecision, trainable=True)
-			#
-			# # self.tf_psi = tf.placeholder(self.tf_FloatPrecision, shape=self.psi.shape, name='psi')
-			# # self.tf_x = tf.placeholder(self.tf_FloatPrecision, shape=self.psi[:self.N_wells].shape, name='x')
-			# # self.tf_y = tf.placeholder(self.tf_FloatPrecision, shape=self.psi[self.N_wells:], name='y')
-			# with tf.compat.v1.variable_scope("state_vars"):
-			# 	self.tf_dpsi = tf.get_variable("tf_dpsi", self.dpsi.shape, dtype=self.tf_FloatPrecision, trainable=True,
-			# 								   initializer=tf.zeros_initializer)
-			#
-			# 	self.tf_E_new = tf.get_variable("tf_E_new", shape=(), dtype=self.tf_FloatPrecision, trainable=True,
-			# 									initializer=tf.zeros_initializer)
-			# # self.tf_dpsi = tf.placeholder(self.tf_FloatPrecision, shape=self.dpsi.shape, name='dpsi')
-			#
-			# # self.tf_xL = tf.Variable(self.xL, dtype=self.tf_FloatPrecision, trainable=True, initializer=tf.zeros_initializer)
-			# # self.tf_yL = tf.Variable(self.yL, dtype=self.tf_FloatPrecision, trainable=True, initializer=tf.zeros_initializer)
-			# with tf.compat.v1.variable_scope("state_vars"):
-			# 	self.tf_xL = tf.get_variable("tf_xL", self.xL.shape, dtype=self.tf_FloatPrecision, trainable=True,
-			# 								 initializer=tf.zeros_initializer)
-			# 	self.tf_yL = tf.get_variable("tf_yL", self.yL.shape, dtype=self.tf_FloatPrecision, trainable=True,
-			# 								 initializer=tf.zeros_initializer)
-			# # self.tf_xL = tf.placeholder(self.tf_FloatPrecision, shape=self.xL.shape, name='xL')
-			# # self.tf_yL = tf.placeholder(self.tf_FloatPrecision, shape=self.yL.shape, name='yL')
-			#
-			# self.tf_zero = tf.constant(0., self.tf_FloatPrecision)
-			# # self.tf_zero = tf.placeholder(self.tf_FloatPrecision, name='zero')
-			#
-			# self.tf_h_dis_x_flat = tf.constant(self.h_dis_x_flat, self.tf_FloatPrecision)
-			# self.tf_h_dis_y_flat = tf.constant(self.h_dis_y_flat, self.tf_FloatPrecision)
-			# # self.tf_h_dis_x_flat = tf.placeholder(self.tf_FloatPrecision, shape=self.h_dis_x_flat.shape, name='h_dis_x_flat')
-			# # self.tf_h_dis_y_flat = tf.placeholder(self.tf_FloatPrecision, shape=self.h_dis_y_flat.shape, name='h_dis_y_flat')
-			# self.tf_beta_disorder_array_flattened = tf.constant(self.beta_disorder_array_flattened, self.tf_FloatPrecision)
-			# # self.tf_beta_disorder_array_flattened = tf.placeholder(self.tf_FloatPrecision, shape=self.beta_disorder_array_flattened.shape,
-			# #
-			# # 													   name='beta_disorder_array_flattened')
-			# self.tf_beta = tf.constant(self.beta_flat, self.tf_FloatPrecision)
-			# # self.tf_beta = tf.placeholder(self.tf_FloatPrecision, shape=self.beta.shape, name='beta')
-			#
 		self.generate_disorder()
 
 	def configure(self, kwargs):
@@ -430,15 +264,6 @@ class DynamicsGenerator(object):
 		np.random.seed(self.disorder_seed)
 		self.e_disorder = -self.W  + 2. * self.W * np.random.rand(self.N_tuple[0], self.N_tuple[1], self.N_tuple[2])
 		self.e_disorder_flat = self.e_disorder.flatten()
-
-		if self.gpu_integrator == 'torch':
-			self.torch_e_disorder = torch.tensor(self.e_disorder_flat, dtype=self.torch_FloatPrecision, device=self.torch_device)
-			# if torch.cuda.is_available():
-			# 	self.torch_e_disorder = self.torch_e_disorder.cuda()
-		elif self.gpu_integrator == 'tf':
-			pass
-			# self.tf_e_disorder = tf.constant(self.e_disorder_flat, self.tf_FloatPrecision)
-			# self.tf_e_disorder = tf.placeholder(self.tf_FloatPrecision, shape=self.e_disorder_flat.shape, name='e_disorder')
 		np.random.seed()
 
 	def set_init_XY(self, x, y):
@@ -494,23 +319,6 @@ class DynamicsGenerator(object):
 		self.THETA[:,:,:,0] = theta.reshape(self.N_tuple)
 		self.X[:,:,:,0], self.Y[:,:,:,0] = self.from_polar_to_XY(self.RHO[:,:,:,0], self.THETA[:,:,:,0])
 		self.E_calibr = 1.0 * energy_per_site * self.N_wells
-	#self.calc_energy_XY(self.X[0,:], self.Y[0,:], 0)
-
-	# def rk4_step_exp_old_slow(self, y0, *args):
-	# 	h = self.step
-	# 	k1 = h * self.Hamiltonian(y0)
-	#
-	# 	y2 = y0 + (k1/2.)
-	# 	k2 = h * self.Hamiltonian(y2)
-	#
-	# 	y3 = y0 + (k2/2.)
-	# 	k3 = h * self.Hamiltonian(y3)
-	#
-	# 	y4 = y0 + k3
-	# 	k4 = h * self.Hamiltonian(y4)
-	#
-	# 	yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
-	# 	return yi
 
 	def rk4_step_exp(self, y0, *args):
 		h = self.step
@@ -531,22 +339,6 @@ class DynamicsGenerator(object):
 
 		yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
 		return yi
-
-	# def rk4_step_exp_XY_old(self, y0, *args):
-	# 	h = self.step
-	# 	k1 = h * self.HamiltonianXY(y0)
-	#
-	# 	y2 = y0 + (k1/2.)
-	# 	k2 = h * self.HamiltonianXY(y2)
-	#
-	# 	y3 = y0 + (k2/2.)
-	# 	k3 = h * self.HamiltonianXY(y3)
-	#
-	# 	y4 = y0 + k3
-	# 	k4 = h * self.HamiltonianXY(y4)
-	#
-	# 	yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
-	# 	return yi
 
 	def rk4_step_exp_XY(self, y0, *args):
 		h = self.step
@@ -624,39 +416,6 @@ class DynamicsGenerator(object):
 		yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
 		return yi
 
-	# def rk4_slow_relax_step_exp_old_slow(self, y0, *args):
-	# 	h = self.step
-	# 	k1 = h * (self.Relaxation(y0) + self.Hamiltonian(y0))
-	#
-	# 	y2 = y0 + (k1/2.)
-	# 	k2 = h * (self.Relaxation(y2) + self.Hamiltonian(y2))
-	#
-	# 	y3 = y0 + (k2/2.)
-	# 	k3 = h * (self.Relaxation(y3) + self.Hamiltonian(y3))
-	#
-	# 	y4 = y0 + k3
-	# 	k4 = h * (self.Relaxation(y4) + self.Hamiltonian(y4))
-	#
-	# 	yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
-	# 	return yi
-
-	# def rk4_relax_step_exp_XY_old(self, y0, *args):
-	#
-	# 	h = self.step
-	# 	k1 = h * self.RelaxationXY(y0)
-	#
-	# 	y2 = y0 + (k1/2.)
-	# 	k2 = h * self.RelaxationXY(y2)
-	#
-	# 	y3 = y0 + (k2/2.)
-	# 	k3 = h * self.RelaxationXY(y3)
-	#
-	# 	y4 = y0 + k3
-	# 	k4 = h * self.RelaxationXY(y4)
-	#
-	# 	yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
-	# 	return yi
-
 	def rk4_relax_step_exp_XY(self, y0, *args):
 
 		h = self.step
@@ -677,24 +436,6 @@ class DynamicsGenerator(object):
 
 		yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
 		return yi
-
-	# def rk4_slow_relax_step_exp_XY_old(self, y0, *args):
-	#
-	# 	h = self.step
-	#
-	# 	k1 = h * (self.RelaxationXY(y0) + self.HamiltonianXY(y0))
-	#
-	# 	y2 = y0 + (k1/2.)
-	# 	k2 = h * (self.RelaxationXY(y2) + self.HamiltonianXY(y2))
-	#
-	# 	y3 = y0 + (k2/2.)
-	# 	k3 = h * (self.RelaxationXY(y3) + self.HamiltonianXY(y3))
-	#
-	# 	y4 = y0 + k3
-	# 	k4 = h * (self.RelaxationXY(y4) + self.HamiltonianXY(y4))
-	#
-	# 	yi = y0 + (k1 + 2.*k2 + 2.*k3 + k4)/6.
-	# 	return yi
 
 	def rk4_slow_relax_step_exp_XY(self, y0, *args):
 
@@ -735,15 +476,6 @@ class DynamicsGenerator(object):
 		self.psi = y0
 		return self.RelaxationXY_fast(time=ts) + self.HamiltonianXY_fast(time=ts)
 
-	def torch_full_eq_of_motion(self, ts, y0):#y0, ts):
-		# self.torch_psi.data.zero_().add_(y0)
-		self.torch_psi = y0
-		self.torch_x = y0[:self.N_wells]
-		self.torch_y = y0[self.N_wells:]
-		# self.torch_x.data.zero_().add_(torch.gather(y0, 0, self.torch_first_half))
-		# self.torch_y.data.zero_().add_(torch.gather(y0, 0, self.torch_second_half))
-		return self.torch_Hamiltonian_with_Relaxation_XY_fast()
-
 	def J_func_full_eq_of_motion(self, ts, y0):#y0, ts):
 		self.psiJac = y0
 		self.FullJacobianWithRelaxXY_fast()
@@ -752,27 +484,6 @@ class DynamicsGenerator(object):
 	def full_eq_of_motion_conservative(self, ts, y0):#y0, ts):
 		self.psi = y0
 		return self.HamiltonianXY_fast()
-
-	def torch_full_eq_of_motion_conservative(self, ts, y0):#y0, ts):
-		self.torch_psi = y0
-		# self.torch_x = torch.gather(y0, 0, self.torch_first_half)
-		# self.torch_y = torch.gather(y0, 0, self.torch_second_half)
-		self.torch_x = y0[:self.N_wells]
-		self.torch_y = y0[self.N_wells:]
-		return self.torch_HamiltonianXY_fast()
-
-	def tf_full_eq_of_motion_conservative(self, y0, ts):#y0, ts):
-		# self.tf_psi = tf.get_variable("tf_psi", dtype=self.tf_FloatPrecision,
-		# 								 initializer=y0)
-		# self.tf_x = self.tf_psi[:self.N_wells]
-		# self.tf_x = self.tf_psi[self.N_wells:]
-		self.tf_psi = y0
-		self.tf_x = y0[:self.N_wells]
-		self.tf_y = y0[self.N_wells:]
-		# self.tf_psi.assign(tf.convert_to_tensor(y0, dtype=self.tf_FloatPrecision))
-		# self.tf_x.assign(tf.convert_to_tensor(y0[:self.N_wells], dtype=self.tf_FloatPrecision))
-		# self.tf_y.assign(tf.convert_to_tensor(y0[self.N_wells:], dtype=self.tf_FloatPrecision))
-		return self.tf_HamiltonianXY_fast()
 
 	def J_func_full_eq_of_motion_conservative(self, ts, y0):#y0, ts):
 		self.psiJac = y0
@@ -783,61 +494,31 @@ class DynamicsGenerator(object):
 		return self.dFdXY
 
 	def run_dynamics(self, no_pert=False):
-
-		if self.gpu_integrator == 'tf':
-			pass
-			# psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
-			# ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
-			# self.T[:self.n_steps] = ts
-			#
-			# # tf.reset_default_graph()
-			# init_op = tf.compat.v1.global_variables_initializer()
-			# # feed_dict = {'J': self.J, 'beta': self.beta, 'e_disorder' : self.e_disorder_flat,
-			# # 			 'gamma': self.gamma,
-			# # 			 'nn_idx_1' : self.nn_idx_1, 'nn_idx_2' : self.nn_idx_2,
-			# # 			 'nn_idy_1': self.nn_idy_1, 'nn_idy_2': self.nn_idy_2,
-			# # 			 'nn_idz_1': self.nn_idz_1, 'nn_idz_2': self.nn_idz_2,
-			# # 			 'anisotropy': self.anisotropy, 'N_wells': self.N_wells,
-			# # 			 'h_dis_x_flat': self.h_dis_x_flat, 'h_dis_y_flat': self.h_dis_y_flat,
-			# # 			 'beta_disorder_array_flattened': self.beta_disorder_array_flattened,
-			# # 			 'zero': 0. }
-			# feed_dict = {self.tf_J: self.J, self.tf_beta: self.beta, self.tf_e_disorder: self.e_disorder_flat,
-			# 			 self.tf_gamma: self.gamma,
-			# 			 self.tf_nn_idx_1: self.nn_idx_1, self.tf_nn_idx_2: self.nn_idx_2,
-			# 			 self.tf_nn_idy_1: self.nn_idy_1, self.tf_nn_idy_2: self.nn_idy_2,
-			# 			 self.tf_nn_idz_1: self.nn_idz_1, self.tf_nn_idz_2: self.nn_idz_2,
-			# 			 self.tf_anisotropy: self.anisotropy, self.tf_N_wells: self.N_wells,
-			# 			 self.tf_h_dis_x_flat: self.h_dis_x_flat, self.tf_h_dis_y_flat: self.h_dis_y_flat,
-			# 			 self.tf_beta_disorder_array_flattened: self.beta_disorder_array_flattened,
-			# 			 self.tf_zero: 0.}
-			#
-			# with tf.compat.v1.Session() as sess:
-			# 	sess.run(init_op)
-			# 	ODE_result_object = tf.contrib.integrate.odeint(self.tf_full_eq_of_motion_conservative,
-			# 							  psi0,
-			# 							  ts,
-			# 							  rtol=self.rtol,
-			# 							  atol=self.atol
-			# 							)
-			#
-			# 	ODE_result_object = sess.run(ODE_result_object, feed_dict=feed_dict)
-			# ODE_result = ODE_result_object
-		elif self.gpu_integrator == 'torch':
+		if self.gpu_integrator == 'torch':
+			print('Running torch')
 
 			psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
 			ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
 			self.T[:self.n_steps] = ts
 
-			ODE_result_object = torchdiffeq.odeint(self.torch_full_eq_of_motion_conservative,
+			conservative_ODE = DGPE_ODE(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma,
+				 self.nn_idx_1, self.nn_idx_2, self.nn_idy_1, self.nn_idy_2, self.nn_idz_1, self.nn_idz_2,
+				 self.h_dis_x_flat, self.h_dis_y_flat,
+				 self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat)
+
+			ODE_result_object = torchdiffeq.odeint(
+										  # self.torch_HamiltonianXY_fast,
+										  conservative_ODE,
 										  torch.from_numpy(psi0).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 									      torch.from_numpy(ts).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 										  rtol=self.rtol,
 										  atol=self.atol
 										)
 
-			ODE_result = ODE_result_object.cpu().numpy()
+			ODE_result = ODE_result_object.detach().cpu().numpy()
 
 		elif self.integrator == 'scipy':
+			print('Running scipy')
 			psi0 = np.hstack((self.X[:,:,:,0].flatten(), self.Y[:,:,:,0].flatten()))
 			ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
 			self.T[:self.n_steps] = ts
@@ -871,50 +552,58 @@ class DynamicsGenerator(object):
 
 		self.set_constants_of_motion_local(0, 0)
 
-		icurr = 0
-		inext = 1
-		self.icurr = 0
-		self.inext = 1
 
-		for i in range(1, self.n_steps):
-			if self.integrator == 'scipy':
-				psi = ODE_result[i,:]
-				self.X[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
-				self.Y[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
-				self.RHO[:,:,:,inext], self.THETA[:,:,:,inext] = self.from_XY_to_polar(self.X[:,:,:,inext], self.Y[:,:,:,inext])
-			elif self.integrator == 'personal':
-				if (np.any(self.RHO[:,:,:,icurr] ** 2 < self.threshold_XY_to_polar)):
-					if (i == 1):
-						self.psiNextXY = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
-					psi = self.rk4_step_exp_XY(self.psiNextXY)
-					self.psiNextXY = psi
+		if self.use_matrix_operations_for_energy:
+			self.X = np.moveaxis(ODE_result[:,:self.N_wells], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
+			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
+			self.icurr = self.n_steps - 1
+			self.inext = self.n_steps
+			self.energy = self.calc_energy_XY_global(ODE_result)
+			self.number_of_particles = self.calc_nop_XY_global(ODE_result)
+		else:
+			icurr = 0
+			inext = 1
+			self.icurr = 0
+			self.inext = 1
+			for i in range(1, self.n_steps):
+				if self.integrator == 'scipy':
+					psi = ODE_result[i,:]
 					self.X[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
 					self.Y[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
 					self.RHO[:,:,:,inext], self.THETA[:,:,:,inext] = self.from_XY_to_polar(self.X[:,:,:,inext], self.Y[:,:,:,inext])
-					self.psiNext = np.hstack((self.RHO[:,:,:,inext].flatten(), self.THETA[:,:,:,inext].flatten()))
+				elif self.integrator == 'personal':
+					if (np.any(self.RHO[:,:,:,icurr] ** 2 < self.threshold_XY_to_polar)):
+						if (i == 1):
+							self.psiNextXY = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
+						psi = self.rk4_step_exp_XY(self.psiNextXY)
+						self.psiNextXY = psi
+						self.X[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
+						self.Y[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
+						self.RHO[:,:,:,inext], self.THETA[:,:,:,inext] = self.from_XY_to_polar(self.X[:,:,:,inext], self.Y[:,:,:,inext])
+						self.psiNext = np.hstack((self.RHO[:,:,:,inext].flatten(), self.THETA[:,:,:,inext].flatten()))
+					else:
+						if (i == 1):
+							self.psiNext = np.hstack((self.RHO[:,:,:,0].flatten(), self.THETA[:,:,:,0].flatten()))
+						psi = self.rk4_step_exp(self.psiNext)
+						self.psiNext = psi
+						self.RHO[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
+						self.THETA[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
+						self.X[:,:,:,inext], self.Y[:,:,:,inext] = self.from_polar_to_XY(self.RHO[:,:,:,inext], self.THETA[:,:,:,inext])
+						self.psiNextXY = np.hstack((self.X[:,:,:,inext].flatten(), self.Y[:,:,:,inext].flatten()))
+
+				self.set_constants_of_motion_local(i, inext)
+
+				if self.calculation_type == 'lyap':
+					icurr = 1 - icurr
+					inext = 1 - inext
+					self.icurr = 1 - self.icurr
+					self.inext = 1 - self.inext
 				else:
-					if (i == 1):
-						self.psiNext = np.hstack((self.RHO[:,:,:,0].flatten(), self.THETA[:,:,:,0].flatten()))
-					psi = self.rk4_step_exp(self.psiNext)
-					self.psiNext = psi
-					self.RHO[:,:,:,inext] = psi[:self.N_wells].reshape(self.N_tuple)
-					self.THETA[:,:,:,inext] = psi[self.N_wells:].reshape(self.N_tuple)
-					self.X[:,:,:,inext], self.Y[:,:,:,inext] = self.from_polar_to_XY(self.RHO[:,:,:,inext], self.THETA[:,:,:,inext])
-					self.psiNextXY = np.hstack((self.X[:,:,:,inext].flatten(), self.Y[:,:,:,inext].flatten()))
+					icurr = icurr + 1
+					inext = inext + 1
 
-			self.set_constants_of_motion_local(i, inext)
-
-			if self.calculation_type == 'lyap':
-				icurr = 1 - icurr
-				inext = 1 - inext
-				self.icurr = 1 - self.icurr
-				self.inext = 1 - self.inext
-			else:
-				icurr = icurr + 1
-				inext = inext + 1
-
-				self.icurr = icurr + 1
-				self.inext = inext + 1
+					self.icurr = icurr + 1
+					self.inext = inext + 1
 
 
 	def run_quench(self, no_pert=False, E_desired=0,temperature_dependent_rate=False, N_max=1e+7):
@@ -979,19 +668,6 @@ class DynamicsGenerator(object):
 				self.inext = inext + 1
 			i += 1
 
-
-	def tf_get_gamma_reduction(self):
-		# def f1(): return self.tf_gamma_reduction * (self.tf_calc_energy_XY() - self.tf_E_desired)
-		# def f2(): return tf.constant(1., self.tf_FloatPrecision)
-		# tf.cond(tf.equal(self.tf_temperature_dependent_rate, tf.constant(True)), f1, f2)
-		return self.tf_gamma_reduction * (self.tf_calc_energy_XY() - self.tf_E_desired)
-
-	def torch_get_gamma_reduction(self):
-		# def f1(): return self.tf_gamma_reduction * (self.tf_calc_energy_XY() - self.tf_E_desired)
-		# def f2(): return tf.constant(1., self.tf_FloatPrecision)
-		# tf.cond(tf.equal(self.tf_temperature_dependent_rate, tf.constant(True)), f1, f2)
-		return torch.mean(self.torch_gamma_reduction * (self.torch_calc_energy_XY() - self.torch_E_desired), dim=0)
-
 	def quenching_profile(self, time=0.):
 		return -self.gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - self.lam2 * np.exp(-self.lam2 * time))
 
@@ -1004,25 +680,6 @@ class DynamicsGenerator(object):
 		else:
 			return 1.
 
-	def tf_full_eq_of_motion(self, y0, ts):#y0, ts):
-		# self.tf_psi.assign(y0)
-		with tf.compat.v1.variable_scope("state_vars", reuse=True):
-			# self.tf_psi = tf.get_variable("tf_psi", dtype=self.tf_FloatPrecision,
-			# 							  initializer=y0)
-			# self.tf_x = tf.get_variable("tf_x", dtype=self.tf_FloatPrecision,
-			# 							initializer=y0[:self.N_wells])
-			# self.tf_y = tf.get_variable("tf_y", dtype=self.tf_FloatPrecision,
-			# 							initializer=y0[self.N_wells:])
-			self.tf_psi = y0
-			self.tf_x = y0[:self.N_wells]
-			self.tf_y = y0[self.N_wells:]
-
-		# self.tf_psi = tf.convert_to_tensor(y0, dtype=self.tf_FloatPrecision)
-			# self.tf_x = tf.convert_to_tensor(y0[:self.N_wells], dtype=self.tf_FloatPrecision)
-			# self.tf_y = tf.convert_to_tensor(y0[self.N_wells:], dtype=self.tf_FloatPrecision)
-		# print(self.tf_psi.eval())
-		return self.tf_Hamiltonian_with_Relaxation_XY_fast()
-
 	def run_relaxation(self, no_pert=False, E_desired=0, temperature_dependent_rate=False, N_max=1e+7):
 
 		self.set_constants_of_motion_local(0, 0)
@@ -1030,25 +687,11 @@ class DynamicsGenerator(object):
 		Ecurr = self.energy[0]
 		Enext = self.energy[0]
 
-		self.temperature_dependent_rate = False
+		# self.temperature_dependent_rate = False
 
-		if temperature_dependent_rate:
-			self.E_desired = E_desired
-			self.temperature_dependent_rate = True
-			self.gamma_reduction = 1./(Ecurr - self.E_desired)
-			if self.gpu_integrator == 'tf':
-				pass
-				# self.tf_gamma_reduction = tf.constant(self.gamma_reduction, self.tf_FloatPrecision)
-				# self.tf_E_desired = tf.constant(self.E_desired, self.tf_FloatPrecision)
-				# self.tf_temperature_dependent_rate = tf.constant(True, tf.bool)
-			if self.gpu_integrator == 'torch':
-				# self.torch_E_new = torch.tensor(np.zeros(self.N_wells), dtype=self.torch_FloatPrecision,
-				# 								device=self.torch_device)
-				self.torch_gamma_reduction = torch.tensor(np.zeros(self.N_wells) + self.gamma_reduction,
-															dtype=self.torch_FloatPrecision, device=self.torch_device)
-				self.torch_E_desired = torch.tensor(np.zeros(self.N_wells) + self.E_desired,
-													dtype=self.torch_FloatPrecision, device=self.torch_device)
-				# self.torch_temperature_dependent_rate = torch.constant(True, torch.bool)
+		self.E_desired = E_desired
+		self.temperature_dependent_rate = temperature_dependent_rate
+		self.gamma_reduction = 1./(Ecurr - self.E_desired)
 
 		if (E_desired - Ecurr) * self.gamma > 0:
 			self.gamma = -self.gamma
@@ -1060,71 +703,31 @@ class DynamicsGenerator(object):
 		# 	if self.gamma < 0:
 		# 		self.gamma = - self.gamma
 
-
-		if self.gpu_integrator == 'tf':
-			pass
-			# psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
-			# ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
-			# self.T[:N_max] = ts
-			#
-			# # tf.reset_default_graph()
-			# init_op = tf.compat.v1.global_variables_initializer()
-			#
-			# # feed_dict = {'J': self.J, 'beta': self.beta, 'e_disorder': self.e_disorder_flat,
-			# # 			 'gamma': self.gamma,
-			# # 			 'nn_idx_1': self.nn_idx_1, 'nn_idx_2': self.nn_idx_2,
-			# # 			 'nn_idy_1': self.nn_idy_1, 'nn_idy_2': self.nn_idy_2,
-			# # 			 'nn_idz_1': self.nn_idz_1, 'nn_idz_2': self.nn_idz_2,
-			# # 			 'anisotropy': self.anisotropy, 'N_wells': self.N_wells,
-			# # 			 'h_dis_x_flat': self.h_dis_x_flat, 'h_dis_y_flat': self.h_dis_y_flat,
-			# # 			 'beta_disorder_array_flattened': self.beta_disorder_array_flattened,
-			# # 			 'zero': 0.}
-			# feed_dict = {self.tf_J: self.J, self.tf_beta: self.beta, self.tf_e_disorder: self.e_disorder_flat,
-			# 			 self.tf_gamma: self.gamma,
-			# 			 self.tf_nn_idx_1: self.nn_idx_1, self.tf_nn_idx_2: self.nn_idx_2,
-			# 			 self.tf_nn_idy_1: self.nn_idy_1, self.tf_nn_idy_2: self.nn_idy_2,
-			# 			 self.tf_nn_idz_1: self.nn_idz_1, self.tf_nn_idz_2: self.nn_idz_2,
-			# 			 self.tf_anisotropy: self.anisotropy, self.tf_N_wells: self.N_wells,
-			# 			 self.tf_h_dis_x_flat: self.h_dis_x_flat, self.tf_h_dis_y_flat: self.h_dis_y_flat,
-			# 			 self.tf_beta_disorder_array_flattened: self.beta_disorder_array_flattened,
-			# 			 self.tf_zero: 0.}
-			#
-			# with tf.compat.v1.Session() as sess:
-			# 	# print(sess.run(tf.report_uninitialized_variables()))
-			# 	sess.run(init_op)
-			# 	ODE_result_object = tf.contrib.integrate.odeint(self.tf_full_eq_of_motion,
-			# 												psi0,
-			# 												ts,
-			# 												# method=self.integration_method,
-			# 												rtol=self.rtol,
-			# 												atol=self.atol,
-			# 												# method='RK45',
-			# 												# method='RK23',
-			# 												# method='Radau',
-			# 												# method='BDF',
-			# 												# method='LSODA',
-			# 												# rtol=1e-6, atol=1e-6,
-			# 												# rtol=1e-6, atol=1e-6,
-			# 												#  jac=self.J_func_full_eq_of_motion_conservative
-			# 												)
-			# 	ODE_result_object = sess.run(ODE_result_object, feed_dict=feed_dict)
-			# ODE_result = ODE_result_object
-		elif self.gpu_integrator == 'torch':
-
+		if self.gpu_integrator == 'torch':
+			print('Running torch')
 			psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
 			ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
 			self.T[:N_max] = ts
 
-			ODE_result_object = torchdiffeq.odeint(self.torch_full_eq_of_motion,
+			relaxational_ODE = DGPE_ODE_RELAXATION(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma,
+										self.nn_idx_1, self.nn_idx_2, self.nn_idy_1, self.nn_idy_2, self.nn_idz_1,
+										self.nn_idz_2,
+										self.h_dis_x_flat, self.h_dis_y_flat,
+										self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat,
+										self.E_desired, self.gamma_reduction, self.lam1, self.lam2, self.smooth_quench, self.temperature_dependent_rate)
+
+			ODE_result_object = torchdiffeq.odeint(relaxational_ODE,
+											# self.torch_Hamiltonian_with_Relaxation_XY_fast,
 												   torch.from_numpy(psi0).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 												   torch.from_numpy(ts).type(self.torch_FloatPrecision).to(self.torch_device),# dtype=self.torch_FloatPrecision),
 												   rtol=self.rtol,
 												   atol=self.atol
 												   )
 
-			ODE_result = ODE_result_object.cpu().numpy()
+			ODE_result = ODE_result_object.detach().cpu().numpy()
 
 		elif self.integrator == 'scipy':
+			print('Running scipy')
 			psi0 = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
 			ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
 			self.T[:N_max] = ts
@@ -1144,84 +747,97 @@ class DynamicsGenerator(object):
 										  t_eval=ts, jac=self.J_func_full_eq_of_motion)
 			ODE_result = ODE_result_object.y.T
 
-		icurr = 0
-		inext = 1
-		self.icurr = 0
-		self.inext = 1
+		if self.use_matrix_operations_for_energy:
+			self.X = np.moveaxis(ODE_result[:,:self.N_wells], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
+			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
+			self.energy = self.calc_energy_XY_global(ODE_result)
+			self.number_of_particles = self.calc_nop_XY_global(ODE_result)
+			idx_desired = np.nonzero((self.energy[:-1] - self.E_desired) * (self.energy[1:] - self.E_desired) < 0)[0]
+			try:
+				self.n_steps = idx_desired[0]
+			except:
+				self.n_steps = 1
+			self.icurr = self.n_steps - 1
+			self.inext = self.n_steps
+		else:
+			icurr = 0
+			inext = 1
+			self.icurr = 0
+			self.inext = 1
 
-		if self.integrator == 'scipy':
-			i = 1
-			while ((Ecurr - E_desired) * (Enext - E_desired) > 0) and (i < N_max):
-				self.set_constants_of_motion_local(i - 1, icurr)
-				Ecurr = self.energy[i - 1]
-				psi = ODE_result[i, :]
-				self.X[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
-				self.Y[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
-				self.RHO[:, :, :, inext], self.THETA[:, :, :, inext] = self.from_XY_to_polar(self.X[:, :, :, inext],
-																							 self.Y[:, :, :, inext])
-
-				self.set_constants_of_motion_local(i, inext)
-				Enext = self.energy[i]
-
-				if self.calculation_type == 'lyap':
-					icurr = 1 - icurr
-					inext = 1 - inext
-					self.icurr = 1 - self.icurr
-					self.inext = 1 - self.inext
-				else:
-					icurr = icurr + 1
-					inext = inext + 1
-
-					self.icurr = icurr + 1
-					self.inext = inext + 1
-				i += 1
-			self.n_steps = i
-
-		elif self.integrator == 'personal':
-			i = 1
-			while ((Ecurr - E_desired) * (Enext - E_desired) > 0) and (i < N_max):
-				self.set_constants_of_motion_local(i - 1, icurr)
-				Ecurr = self.energy[i-1]
-
-				if (np.any(self.RHO[:, :, :, icurr] ** 2 < self.threshold_XY_to_polar)):
-					if (i == 1):
-						self.psiNextXY = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
-					psi = self.rk4_slow_relax_step_exp_XY(self.psiNextXY)
-					self.psiNextXY = psi
+			if self.integrator == 'scipy':
+				i = 1
+				while ((Ecurr - E_desired) * (Enext - E_desired) > 0) and (i < N_max):
+					self.set_constants_of_motion_local(i - 1, icurr)
+					Ecurr = self.energy[i - 1]
+					psi = ODE_result[i, :]
 					self.X[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
 					self.Y[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
 					self.RHO[:, :, :, inext], self.THETA[:, :, :, inext] = self.from_XY_to_polar(self.X[:, :, :, inext],
 																								 self.Y[:, :, :, inext])
-					self.psiNext = np.hstack((self.RHO[:, :, :, inext].flatten(), self.THETA[:, :, :, inext].flatten()))
-				else:
-					if (i == 1):
-						self.psiNext = np.hstack((self.RHO[:, :, :, 0].flatten(), self.THETA[:, :, :, 0].flatten()))
-					psi = self.rk4_slow_relax_step_exp(self.psiNext)
-					self.psiNext = psi
-					self.RHO[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
-					self.THETA[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
-					self.X[:, :, :, inext], self.Y[:, :, :, inext] = self.from_polar_to_XY(self.RHO[:, :, :, inext],
-																						   self.THETA[:, :, :, inext])
-					self.psiNextXY = np.hstack((self.X[:, :, :, inext].flatten(), self.Y[:, :, :, inext].flatten()))
 
-				self.set_constants_of_motion_local(i, inext)
-				Enext = self.energy[i]
+					self.set_constants_of_motion_local(i, inext)
+					Enext = self.energy[i]
 
-				if self.calculation_type == 'lyap':
-					icurr = 1 - icurr
-					inext = 1 - inext
-					self.icurr = 1 - self.icurr
-					self.inext = 1 - self.inext
+					if self.calculation_type == 'lyap':
+						icurr = 1 - icurr
+						inext = 1 - inext
+						self.icurr = 1 - self.icurr
+						self.inext = 1 - self.inext
+					else:
+						icurr = icurr + 1
+						inext = inext + 1
 
-				else:
-					icurr = icurr + 1
-					inext = inext + 1
+						self.icurr = icurr + 1
+						self.inext = inext + 1
+					i += 1
+				self.n_steps = i
 
-					self.icurr = icurr + 1
-					self.inext = inext + 1
-				i += 1
+			elif self.integrator == 'personal':
+				i = 1
+				while ((Ecurr - E_desired) * (Enext - E_desired) > 0) and (i < N_max):
+					self.set_constants_of_motion_local(i - 1, icurr)
+					Ecurr = self.energy[i-1]
 
-			self.n_steps = i
+					if (np.any(self.RHO[:, :, :, icurr] ** 2 < self.threshold_XY_to_polar)):
+						if (i == 1):
+							self.psiNextXY = np.hstack((self.X[:, :, :, 0].flatten(), self.Y[:, :, :, 0].flatten()))
+						psi = self.rk4_slow_relax_step_exp_XY(self.psiNextXY)
+						self.psiNextXY = psi
+						self.X[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
+						self.Y[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
+						self.RHO[:, :, :, inext], self.THETA[:, :, :, inext] = self.from_XY_to_polar(self.X[:, :, :, inext],
+																									 self.Y[:, :, :, inext])
+						self.psiNext = np.hstack((self.RHO[:, :, :, inext].flatten(), self.THETA[:, :, :, inext].flatten()))
+					else:
+						if (i == 1):
+							self.psiNext = np.hstack((self.RHO[:, :, :, 0].flatten(), self.THETA[:, :, :, 0].flatten()))
+						psi = self.rk4_slow_relax_step_exp(self.psiNext)
+						self.psiNext = psi
+						self.RHO[:, :, :, inext] = psi[:self.N_wells].reshape(self.N_tuple)
+						self.THETA[:, :, :, inext] = psi[self.N_wells:].reshape(self.N_tuple)
+						self.X[:, :, :, inext], self.Y[:, :, :, inext] = self.from_polar_to_XY(self.RHO[:, :, :, inext],
+																							   self.THETA[:, :, :, inext])
+						self.psiNextXY = np.hstack((self.X[:, :, :, inext].flatten(), self.Y[:, :, :, inext].flatten()))
+
+					self.set_constants_of_motion_local(i, inext)
+					Enext = self.energy[i]
+
+					if self.calculation_type == 'lyap':
+						icurr = 1 - icurr
+						inext = 1 - inext
+						self.icurr = 1 - self.icurr
+						self.inext = 1 - self.inext
+
+					else:
+						icurr = icurr + 1
+						inext = inext + 1
+
+						self.icurr = icurr + 1
+						self.inext = inext + 1
+					i += 1
+
+				self.n_steps = i
 
 		self.temperature_dependent_rate = False
 
@@ -1230,60 +846,6 @@ class DynamicsGenerator(object):
 		self.beta = -1. * self.beta * (1.0 + error_beta * np.random.randn())
 		self.e_disorder = -1. * self.e_disorder * (1.0 + error_disorder * np.random.randn())
 		self.e_disorder_flat = self.e_disorder.flatten()
-		if self.gpu_integrator == 'tf':
-			pass
-			# self.tf_e_disorder = tf.constant(self.e_disorder_flat, self.tf_FloatPrecision)
-		elif self.gpu_integrator == 'torch':
-			self.torch_e_disorder = torch.tensor(self.e_disorder_flat, dtype=self.torch_FloatPrecision,
-												 device=self.torch_device)
-			# if torch.cuda.is_available():
-			# 	self.torch_e_disorder = self.torch_e_disorder.cuda()
-
-	# def Hamiltonian(self, psi):
-	# 	rho0 = psi[:self.N_wells].reshape(self.N_tuple)
-	# 	theta0 = psi[self.N_wells:].reshape(self.N_tuple)
-	# 	rho = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	# 	theta = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	# 	for i in self.wells_indices:
-	# 		theta[i] += - self.beta * (rho0[i]**2) - self.e_disorder[i]
-	# 		for idx, j in enumerate(self.nearest_neighbours(i)):
-	# 			# Introduce anisotropy of J for the 3rd axis
-	# 			if idx > 3:
-	# 				rho[i] -= self.anisotropy * self.J * (rho0[j] * np.sin(theta0[j]-theta0[i]))
-	# 				dThetaJ = self.anisotropy * self.J  * (rho0[j] * np.cos(theta0[j]-theta0[i]))
-	# 			else:
-	# 				rho[i] -= self.J * (rho0[j] * np.sin(theta0[j]-theta0[i]))
-	# 				dThetaJ = self.J  * (rho0[j] * np.cos(theta0[j]-theta0[i]))
-	#
-	# 			theta[i] += 1.0 / rho0[i] * dThetaJ
-	# 	return np.hstack((rho.flatten(),theta.flatten()))
-
-	# def Relaxation(self, psi):
-	# 	rho0 = psi[:self.N_wells].reshape(self.N_tuple)
-	# 	theta0 = psi[self.N_wells:].reshape(self.N_tuple)
-	#
-	# 	rho = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	# 	theta = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	#
-	# 	xL = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	# 	yL = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	#
-	# 	for i in self.wells_indices:
-	# 		# calculating the local field (xL, yL)
-	# 		for idx, j in enumerate(self.nearest_neighbours(i)):
-	# 			# Introduce anisotropy of J for the 3rd axis
-	# 			if idx > 3:
-	# 				xL[i] += self.anisotropy * self.J * rho0[j] * np.cos(theta0[j])
-	# 				yL[i] += self.anisotropy * self.J * rho0[j] * np.sin(theta0[j])
-	# 			else:
-	# 				xL[i] += self.J * rho0[j] * np.cos(theta0[j])
-	# 				yL[i] += self.J * rho0[j] * np.sin(theta0[j])
-	# 	# rhoL, thetaL = self.from_XY_to_polar(xL, yL)
-	#
-	# 	rho = 0 * rho0
-	# 	theta = - self.gamma * rho0 * (xL * np.sin(theta0) - yL * np.cos(theta0))
-	# 	# theta = - self.gamma * rho0 * rhoL * np.sin(theta0 - thetaL)
-	# 	return np.hstack((rho.flatten(),theta.flatten()))
 
 	def Hamiltonian_fast(self):
 		self.dpsi *= 0
@@ -1356,68 +918,6 @@ class DynamicsGenerator(object):
 		else:
 			return 0
 
-	# def HamiltonianXY(self, psi):
-	# 	# psi_shape = psi[:self.N_wells].view()
-	# 	# psi_shape.shape = self.N_tuple
-	#
-	# 	X0 = psi[:self.N_wells].reshape(self.N_tuple)
-	# 	Y0 = psi[self.N_wells:].reshape(self.N_tuple)
-	#
-	# 	dX = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	# 	dY = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	#
-	# 	for i in self.wells_indices:
-	# 		dX[i] += self.e_disorder[i] * Y0[i]
-	# 		dY[i] += - self.e_disorder[i] * X0[i]
-	# 		for idx, j in enumerate(self.nearest_neighbours(i)):
-	# 			# Introduce anisotropy of J for the 3rd axis
-	# 			if idx > 3:
-	# 				dX[i] += - self.anisotropy * self.J * Y0[j]
-	# 				dY[i] += self.anisotropy * self.J * X0[j]
-	# 			else:
-	# 				dX[i] += -self.J * Y0[j]
-	# 				dY[i] += self.J * X0[j]
-	#
-	# 	dX += self.beta * ((Y0 ** 2) + (X0 ** 2)) * Y0
-	# 	dY += - self.beta * ((Y0 ** 2) + (X0 ** 2)) * X0
-	#
-	# 	return np.hstack((dX.flatten(),dY.flatten()))
-
-
-	def tf_HamiltonianXY_fast(self):
-
-		self.tf_dpsi.assign(tf.concat([self.tf_e_disorder * self.tf_y, -self.tf_e_disorder * self.tf_x], axis=0))
-
-		self.tf_xL.assign(-self.tf_J * (
-				tf.gather(self.tf_x, self.tf_nn_idx_1) +
-				tf.gather(self.tf_x, self.tf_nn_idx_2) +
-				tf.gather(self.tf_x, self.tf_nn_idy_1) +
-				tf.gather(self.tf_x, self.tf_nn_idy_2) +
-				self.tf_anisotropy * (tf.gather(self.tf_x, self.tf_nn_idz_1) +
-								   tf.gather(self.tf_x, self.tf_nn_idz_2)
-								   )
-		))
-
-		self.tf_yL.assign(self.J * (
-				tf.gather(self.tf_y, self.tf_nn_idx_1) +
-				tf.gather(self.tf_y, self.tf_nn_idx_2) +
-				tf.gather(self.tf_y, self.tf_nn_idy_1) +
-				tf.gather(self.tf_y, self.tf_nn_idy_2) +
-				self.tf_anisotropy * (tf.gather(self.tf_y, self.tf_nn_idz_1) +
-								   tf.gather(self.tf_y, self.tf_nn_idz_2)
-								   )
-		))
-
-		self.tf_dpsi.assign_add(tf.concat([self.tf_xL, self.tf_yL], axis=0))
-
-		self.tf_dpsi.assign_add(tf.concat([self.tf_h_dis_y_flat, -self.tf_h_dis_x_flat], axis=0))
-
-		self.tf_dpsi.assign_add(tf.concat([self.tf_beta *
-				   (tf.pow(self.tf_y, 2) + tf.pow(self.tf_x, 2)) * self.tf_y, - self.tf_beta *
-				   (tf.pow(self.tf_y, 2) + tf.pow(self.tf_x, 2)) * self.tf_x], axis=0))
-
-		return self.tf_dpsi
-
 	def HamiltonianXY_fast(self, time=0.):
 
 		self.dpsi *= 0
@@ -1476,99 +976,6 @@ class DynamicsGenerator(object):
 					(self.psi[self.N_wells:] ** 2) + (self.psi[:self.N_wells] ** 2)) * self.psi[:self.N_wells]
 
 		return self.dpsi.copy()
-
-
-	def torch_HamiltonianXY_fast(self):
-		self.torch_dpsi = torch.cat([self.torch_e_disorder * self.torch_y, -self.torch_e_disorder * self.torch_x], dim=0)
-
-		self.torch_xL = (self.torch_J * (
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_x, 0, self.torch_nn_idz_1) +
-								   torch.gather(self.torch_x, 0, self.torch_nn_idz_2)
-								   )
-		))
-
-		self.torch_yL = (self.torch_J * (
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_y, 0, self.torch_nn_idz_1) +
-								   torch.gather(self.torch_y, 0, self.torch_nn_idz_2)
-								   )
-		))
-
-		self.torch_dpsi.add_(torch.cat([-self.torch_yL, self.torch_xL], dim=0))
-
-		self.torch_dpsi.add_(torch.cat([self.torch_h_dis_y_flat, -self.torch_h_dis_x_flat], dim=0))
-
-		self.torch_dpsi.add_(torch.cat([self.torch_beta *
-				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y, - self.torch_beta *
-				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x], dim=0))
-
-		return self.torch_dpsi
-
-	def torch_Hamiltonian_with_Relaxation_XY_fast(self):
-
-		self.torch_xL.zero_().add_(self.torch_J * (
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_x, 0, self.torch_nn_idz_1) +
-								   torch.gather(self.torch_x, 0, self.torch_nn_idz_2)
-								   )
-		))
-
-		self.torch_yL.zero_().add_(self.torch_J * (
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_y, 0, self.torch_nn_idz_1) +
-								   torch.gather(self.torch_y, 0, self.torch_nn_idz_2)
-								   )
-		))
-
-		self.torch_dpsi[self.torch_first_half].zero_().add_(self.torch_gamma * self.torch_y * (
-				self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
-		self.torch_dpsi[self.torch_second_half].zero_().add_(-self.torch_gamma * self.torch_x * (
-									 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x))
-
-		# self.torch_dpsi = torch.cat([self.torch_gamma * self.torch_y * (
-		# 		self.torch_xL * self.torch_y - self.torch_yL * self.torch_x),
-		# 					 -self.torch_gamma * self.torch_x * (
-		# 							 self.torch_xL * self.torch_y - self.torch_yL * self.torch_x)], dim=0)
-
-		self.torch_dpsi.mul_(self.torch_get_gamma_reduction())
-
-		# self.torch_dpsi.add_(torch.cat([self.torch_e_disorder * self.torch_y, -self.torch_e_disorder * self.torch_x], dim=0))
-
-		self.torch_dpsi[self.torch_first_half].add_(self.torch_e_disorder * self.torch_y)
-		self.torch_dpsi[self.torch_second_half].add_(-self.torch_e_disorder * self.torch_x)
-
-		# self.torch_dpsi.add_(torch.cat([-self.torch_yL, self.torch_xL], dim=0))
-		self.torch_dpsi[self.torch_first_half].add_(-self.torch_yL)
-		self.torch_dpsi[self.torch_second_half].add_(self.torch_xL)
-
-		# self.torch_dpsi.add_(torch.cat([self.torch_h_dis_y_flat, -self.torch_h_dis_x_flat], dim=0))
-
-		self.torch_dpsi[self.torch_first_half].add_(self.torch_h_dis_y_flat)
-		self.torch_dpsi[self.torch_second_half].add_(-self.torch_h_dis_x_flat)
-
-		# self.torch_dpsi.add_(torch.cat([self.torch_beta *
-		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y, - self.torch_beta *
-		# 		   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x], dim=0))
-
-		self.torch_dpsi[self.torch_first_half].add_(self.torch_beta *
-				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_y)
-		self.torch_dpsi[self.torch_second_half].add_(- self.torch_beta *
-				   (torch.pow(self.torch_y, 2) + torch.pow(self.torch_x, 2)) * self.torch_x)
-
-		return self.torch_dpsi
 
 	def RelaxationXY_fast(self, time=0.):
 		self.dpsi *= 0
@@ -1630,54 +1037,6 @@ class DynamicsGenerator(object):
 
 		return self.dpsi.copy()
 
-
-	def tf_Hamiltonian_with_Relaxation_XY_fast(self):
-
-		# self.tf_dpsi.assign(self.tf_zero * self.tf_dpsi)
-
-		# self.tf_xL.assign(self.tf_xL * self.tf_zero)
-		# self.tf_yL.assign(self.tf_yL * self.tf_zero)
-		with tf.compat.v1.variable_scope("state_vars", reuse=True):
-			self.tf_xL = tf.get_variable('tf_xL', dtype=self.tf_FloatPrecision, shape=self.tf_xL.shape, initializer=tf.zeros_initializer)
-			self.tf_yL = tf.get_variable('tf_yL', dtype=self.tf_FloatPrecision, shape=self.tf_xL.shape, initializer=tf.zeros_initializer)
-			self.tf_dpsi = tf.get_variable('tf_dpsi', dtype=self.tf_FloatPrecision, shape=self.tf_dpsi.shape, initializer=tf.zeros_initializer)
-			# self.tf_yL = tf.zeros_like(self.tf_yL)
-
-		self.tf_xL.assign_add(-self.tf_J * (
-				tf.gather(self.tf_x, self.tf_nn_idx_1) +
-				tf.gather(self.tf_x, self.tf_nn_idx_2) +
-				tf.gather(self.tf_x, self.tf_nn_idy_1) +
-				tf.gather(self.tf_x, self.tf_nn_idy_2) +
-				self.tf_anisotropy * (tf.gather(self.tf_x, self.tf_nn_idz_1) +
-								   tf.gather(self.tf_x, self.tf_nn_idz_2)
-								   )
-						) )
-		self.tf_yL.assign_add(self.J * (
-				tf.gather(self.tf_y, self.tf_nn_idx_1) +
-				tf.gather(self.tf_y, self.tf_nn_idx_2) +
-				tf.gather(self.tf_y, self.tf_nn_idy_1) +
-				tf.gather(self.tf_y, self.tf_nn_idy_2) +
-				self.tf_anisotropy * (tf.gather(self.tf_y, self.tf_nn_idz_1) +
-								   tf.gather(self.tf_y, self.tf_nn_idz_2)
-								   )
-						) )
-
-		self.tf_dpsi.assign_add(tf.concat([self.tf_gamma * self.tf_y * (
-				self.tf_xL * self.tf_y - self.tf_yL * self.tf_x),
-							 -self.tf_gamma * self.tf_x * (
-									 self.tf_xL * self.tf_y - self.tf_yL * self.tf_x)], axis=0))
-
-		self.tf_dpsi.assign(self.tf_dpsi * self.tf_get_gamma_reduction())
-
-		self.tf_dpsi.assign_add(tf.concat([self.tf_e_disorder * self.tf_y, -self.tf_e_disorder * self.tf_x], axis=0))
-		self.tf_dpsi.assign_add(tf.concat([self.tf_xL, self.tf_yL], axis=0))
-		self.tf_dpsi.assign_add(tf.concat([self.tf_h_dis_y_flat, -self.tf_h_dis_x_flat], axis=0))
-		self.tf_dpsi.assign_add(tf.concat([self.tf_beta *
-				(tf.pow(self.tf_y,2) + tf.pow(self.tf_x,2)) * self.tf_y, - self.tf_beta *
-										   (tf.pow(self.tf_y,2) + tf.pow(self.tf_x,2)) * self.tf_x], axis=0))
-
-		return self.tf_dpsi
-
 	def HamiltonianXY_fast_old(self):
 
 		self.dpsi *= 0
@@ -1735,31 +1094,6 @@ class DynamicsGenerator(object):
 		self.dpsi = self.get_gamma_reduction(self.psi) * self.dpsi
 
 		return self.dpsi.copy()
-
-	# def RelaxationXY(self, psi):
-	# 	X0 = psi[:self.N_wells].reshape(self.N_tuple)
-	# 	Y0 = psi[self.N_wells:].reshape(self.N_tuple)
-	#
-	# 	dX = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	# 	dY = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	#
-	# 	xL = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	# 	yL = np.zeros(self.N_tuple, dtype=self.FloatPrecision)
-	#
-	# 	for i in self.wells_indices:
-	# 		# calculating the local field (xL, yL)
-	# 		for idx, j in enumerate(self.nearest_neighbours(i)):
-	# 			# Introduce anisotropy of J for the 3rd axis
-	# 			if idx > 3:
-	# 				xL[i] += self.anisotropy * self.J * X0[j]
-	# 				yL[i] += self.anisotropy * self.J * Y0[j]
-	# 			else:
-	# 				xL[i] += self.J * X0[j]
-	# 				yL[i] += self.J * Y0[j]
-	# 	dX += self.gamma * Y0 * (xL * Y0 - yL * X0)
-	# 	dY += -self.gamma * X0 * (xL * Y0 - yL * X0)
-	#
-	# 	return np.hstack((dX.flatten(),dY.flatten()))
 
 	def index_tuple_to_num(self, idx):
 		return idx[0] + self.N_tuple[1] * (idx[1] + idx[2] * self.N_tuple[2])
@@ -1967,58 +1301,6 @@ class DynamicsGenerator(object):
 	def calc_traj_shift_XY(self, x0, y0, x1, y1):
 		return np.sqrt(np.sum( ((x0 - x1) ** 2 + (y0 - y1) ** 2).flatten() ))
 
-	def tf_calc_energy_XY(self):
-		# tf_E_new = tf.Variable(self.tf_zero, dtype=self.tf_FloatPrecision, trainable=True, initializer=tf.zeros_initializer)
-		self.tf_E_new.assign(0.)
-		tf.assign_add(self.tf_E_new, tf.reduce_sum(self.tf_beta * tf.constant(0.5, self.tf_FloatPrecision) * (tf.pow(tf.pow(self.tf_x, 2.) + tf.pow(self.tf_y,2.), 2.))) )
-		tf.assign_add(self.tf_E_new, tf.reduce_sum(self.tf_e_disorder * (tf.pow(self.tf_x,2) + tf.pow(self.tf_y,2))) )
-		tf.assign_add(self.tf_E_new, tf.reduce_sum(-self.tf_J * (self.tf_x * (
-				tf.gather(self.tf_x, self.tf_nn_idx_1) +
-				tf.gather(self.tf_x, self.tf_nn_idx_2) +
-				tf.gather(self.tf_x, self.tf_nn_idy_1) +
-				tf.gather(self.tf_x, self.tf_nn_idy_2) +
-				self.tf_anisotropy * (tf.gather(self.tf_x, self.tf_nn_idz_1) +
-								   tf.gather(self.tf_x, self.tf_nn_idz_2)
-								   )) +
-								   self.tf_y * (
-				tf.gather(self.tf_y, self.tf_nn_idx_1) +
-				tf.gather(self.tf_y, self.tf_nn_idx_2) +
-				tf.gather(self.tf_y, self.tf_nn_idy_1) +
-				tf.gather(self.tf_y, self.tf_nn_idy_2) +
-				self.tf_anisotropy * (tf.gather(self.tf_y, self.tf_nn_idz_1) +
-								   tf.gather(self.tf_y, self.tf_nn_idz_2)
-								   )
-								)
-						)) )
-		tf.assign_add(self.tf_E_new, tf.reduce_sum(self.tf_h_dis_x_flat * self.tf_x + self.tf_h_dis_y_flat * self.tf_y) )
-		return self.tf_E_new
-
-	def torch_calc_energy_XY(self):
-		# tf_E_new = tf.Variable(self.tf_zero, dtype=self.tf_FloatPrecision, trainable=True, initializer=tf.zeros_initializer)
-		self.torch_E_new = self.torch_beta * 0.5 * (torch.pow(torch.pow(self.torch_x, 2.) + torch.pow(self.torch_y,2.), 2.))
-		self.torch_E_new.add_(self.torch_e_disorder * (torch.pow(self.torch_x,2) + torch.pow(self.torch_y,2)))
-		self.torch_E_new.add_(-self.torch_J * (self.torch_x * (
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_x, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_x, 0, self.torch_nn_idz_1) +
-								   torch.gather(self.torch_x, 0, self.torch_nn_idz_2)
-								   )) +
-								   self.torch_y * (
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idx_2) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_1) +
-				torch.gather(self.torch_y, 0, self.torch_nn_idy_2) +
-				self.torch_anisotropy * (torch.gather(self.torch_y, 0, self.torch_nn_idz_1) +
-								   torch.gather(self.torch_y, 0, self.torch_nn_idz_2)
-								   )
-								)
-						))
-		self.torch_E_new.add_(self.torch_h_dis_x_flat * self.torch_x + self.torch_h_dis_y_flat * self.torch_y)
-		return self.torch_E_new
-
-
 	def calc_energy_XY(self, x, y, E):
 		E_new = -E
 		if (self.use_matrix_operations) and (len(x.shape) == 1):
@@ -2059,6 +1341,42 @@ class DynamicsGenerator(object):
 					else:
 						E_new += (-self.J * (x[j] * x[k] + y[j] * y[k]))
 		return E_new
+
+	def calc_energy_XY_global(self, PSI):
+		# PSI[time, 2*N_wells]
+		if (self.use_matrix_operations_for_energy):
+			return np.sum(self.beta_flat / 2. * ((PSI[:,:self.N_wells] ** 2 + PSI[:,self.N_wells:] ** 2) ** 2) +
+			self.e_disorder_flat * (PSI[:,:self.N_wells] ** 2 + PSI[:,self.N_wells:] ** 2)
+			-self.J * (PSI[:,self.N_wells:] * (
+					PSI[:,self.N_wells:][:,self.nn_idx_1] +
+					PSI[:,self.N_wells:][:,self.nn_idx_2] +
+					PSI[:,self.N_wells:][:,self.nn_idy_1] +
+					PSI[:,self.N_wells:][:,self.nn_idy_2] +
+					self.anisotropy * (PSI[:,self.N_wells:][:,self.nn_idz_1] +
+									   PSI[:,self.N_wells:][:,self.nn_idz_2]
+									   )
+			) +
+									   PSI[:, :self.N_wells] * (
+											   PSI[:,:self.N_wells][:,self.nn_idx_1] +
+											   PSI[:,:self.N_wells][:,self.nn_idx_2] +
+											   PSI[:,:self.N_wells][:,self.nn_idy_1] +
+											   PSI[:,:self.N_wells][:,self.nn_idy_2] +
+											   self.anisotropy * (PSI[:,:self.N_wells][:,self.nn_idz_1] +
+																  PSI[:,:self.N_wells][:,self.nn_idz_2]
+																  )
+									   )
+									   ) +
+				self.h_dis_x_flat * PSI[:,:self.N_wells] + self.h_dis_y_flat * PSI[:,self.N_wells:], axis=1)
+		else:
+			return np.zeros(self.n_steps, dtype=self.FloatPrecision)
+
+	def calc_nop_XY_global(self, PSI):
+		# PSI[time, 2*N_wells]
+		if (self.use_matrix_operations_for_energy):
+			return np.sum((PSI[:,:self.N_wells] ** 2 + PSI[:,self.N_wells:] ** 2), axis=1)
+		else:
+			return np.zeros(self.n_steps, dtype=self.FloatPrecision)
+
 
 	def calc_angular_momentum_XY(self, x, y):
 		L = 0
