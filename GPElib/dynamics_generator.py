@@ -687,7 +687,7 @@ class DynamicsGenerator(object):
 		Ecurr = self.energy[0]
 		Enext = self.energy[0]
 
-		self.temperature_dependent_rate = False
+		# self.temperature_dependent_rate = False
 
 		self.E_desired = E_desired
 		self.temperature_dependent_rate = temperature_dependent_rate
@@ -714,7 +714,7 @@ class DynamicsGenerator(object):
 										self.nn_idz_2,
 										self.h_dis_x_flat, self.h_dis_y_flat,
 										self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat,
-										self.E_desired, self.gamma_reduction, self.lam1, self.lam2, self.smooth_quench)
+										self.E_desired, self.gamma_reduction, self.lam1, self.lam2, self.smooth_quench, self.temperature_dependent_rate)
 
 			ODE_result_object = torchdiffeq.odeint(relaxational_ODE,
 											# self.torch_Hamiltonian_with_Relaxation_XY_fast,
