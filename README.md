@@ -2,16 +2,42 @@
 
 A tool for modelling the system of coupled Bose-Einstein condensates on a lattice with periodic boundary conditions in 1D, 2D and 3D.
 
-The 4-th order Runge-Kutta algorithm with a fixed time step is employed. The code supports double and quadrupole precision numbers.
+In addition, the code includes:
 
-The standard routine for the largest Lyapunov exponent calculation is implemented, 
-as well as a custom Loschmidt echo (imperfect time-reversal) routine, for the lattice of coupled Bose-Einstein condensates.
+1) The standard routine for calculating the largest Lyapunov exponent.
+
+2) A custom imperfect time-reversal routine ([Loschmidt echo](http://www.scholarpedia.org/article/Loschmidt_echo)).
+
+3) A custom routine for estimating the typical temperature on a chosen energy shell from conservative dynamics. 
+
+4) Non-conservative quenching terms;
+    1) Driving the system to a pre-set energy.
+    2) Driving the system according to a pre-set energy-drain profile.
+
+5) Disorder of several kinds:
+    1) A local symmetry breaking disorder field (linear in \psi). 
+    2) Disorder in the local chemical potential (preserves symmetry, proportional to \asb(\psi^2)).
+    3) Disorder in the on-site interaction term (preserves symmetry, proportional to \asb(\psi^4)).
+
+## Numerical integration algorithms used
+
+The dopri45 Runge-Kutta with adaptive time-step (parallelized on CPUs and GPUs versions) support only double precision numbers, and a custom 4-th order Runge-Kutta algorithm with a fixed time step are employed. The custom code supports quadrupole precision floats for exact Lyapunov exponents calculations.
+
+## CPU Parallelization
+
+The code supports OpenMP parallelization on multicore CPUs via [scipy.integrate.solve_ivp](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html) solver.
+
+## CPU Parallelization
+
+The code supports GPU parallelization on NVIDIA GPUs via PyTorch + [torchdiffeq](https://github.com/rtqichen/torchdiffeq) solver.
+
+## For citation
 
 The code was used for obtaining numerical results for the papers:
 
-Andrei E. Tarkhov, Sandro Wimberger, and Boris V. Fine, Phys. Rev. A 96, 023624 (2017), https://doi.org/10.1103/PhysRevA.96.023624
+1) [Andrei E. Tarkhov, Sandro Wimberger, and Boris V. Fine, _Phys. Rev. A_ **96**, 023624 (2017)](https://doi.org/10.1103/PhysRevA.96.023624)
 
-Andrei E. Tarkhov, Boris V. Fine, New J. Phys. 20 123021 (2018), https://doi.org/10.1088/1367-2630/aaf0b6
+2) [Andrei E. Tarkhov, Boris V. Fine, _New J. Phys._ **20** 123021 (2018)](https://doi.org/10.1088/1367-2630/aaf0b6)
 
 -----------------------------------------
 Copyright <2019> <Andrei E. Tarkhov, Skolkovo Institute of Science and Technology,
