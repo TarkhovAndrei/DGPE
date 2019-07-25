@@ -754,7 +754,7 @@ class DynamicsGenerator(object):
 			self.number_of_particles = self.calc_nop_XY_global(ODE_result)
 			idx_desired = np.nonzero((self.energy[:-1] - self.E_desired) * (self.energy[1:] - self.E_desired) < 0)[0]
 			if len(idx_desired.shape) == 1:
-				self.n_steps = idx_desired
+				self.n_steps = idx_desired[0]
 			else:
 				self.n_steps = 1
 			self.icurr = self.n_steps - 1
