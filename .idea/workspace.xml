@@ -74,8 +74,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="256">
-              <caret line="692" column="8" selection-start-line="692" selection-start-column="8" selection-end-line="692" selection-end-column="8" />
+            <state relative-caret-position="315">
+              <caret line="694" lean-forward="true" selection-start-line="694" selection-end-line="694" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -168,6 +168,7 @@
       <find>quenching</find>
       <find>DGPE_</find>
       <find>т_</find>
+      <find>E_desired</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -594,8 +595,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="256">
-          <caret line="692" column="8" selection-start-line="692" selection-start-column="8" selection-end-line="692" selection-end-column="8" />
+        <state relative-caret-position="315">
+          <caret line="694" lean-forward="true" selection-start-line="694" selection-end-line="694" />
           <folding>
             <element signature="e#1580#1598#0" expanded="true" />
           </folding>

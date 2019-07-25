@@ -690,10 +690,8 @@ class DynamicsGenerator(object):
 		self.temperature_dependent_rate = False
 
 		self.E_desired = E_desired
-		
-		if temperature_dependent_rate:
-			self.temperature_dependent_rate = True
-			self.gamma_reduction = 1./(Ecurr - self.E_desired)
+		self.temperature_dependent_rate = temperature_dependent_rate
+		self.gamma_reduction = 1./(Ecurr - self.E_desired)
 
 		if (E_desired - Ecurr) * self.gamma > 0:
 			self.gamma = -self.gamma
