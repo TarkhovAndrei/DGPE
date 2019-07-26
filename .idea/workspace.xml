@@ -68,8 +68,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="276">
-              <caret line="559" column="37" lean-forward="true" selection-start-line="559" selection-start-column="37" selection-end-line="559" selection-end-column="37" />
+            <state relative-caret-position="350">
+              <caret line="754" column="43" lean-forward="true" selection-start-line="754" selection-start-column="43" selection-end-line="754" selection-end-column="43" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -92,8 +92,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1140">
-              <caret line="77" column="18" selection-start-line="77" selection-start-column="18" selection-end-line="77" selection-end-column="18" />
+            <state relative-caret-position="-152">
+              <caret line="65" column="14" lean-forward="true" selection-start-line="65" selection-start-column="14" selection-end-line="65" selection-end-column="14" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -133,7 +133,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>index_tuple_to_num</find>
       <find>JacobianXY</find>
       <find>.cuda()</find>
       <find>self.torch_dpsi</find>
@@ -163,6 +162,7 @@
       <find>self.energy</find>
       <find>use_matrix</find>
       <find>use_matrix_operations_for</find>
+      <find>run_relaxation</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -514,16 +514,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1140">
-          <caret line="77" column="18" selection-start-line="77" selection-start-column="18" selection-end-line="77" selection-end-column="18" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -541,10 +531,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-152">
+          <caret line="65" column="14" lean-forward="true" selection-start-line="65" selection-start-column="14" selection-end-line="65" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="559" column="37" lean-forward="true" selection-start-line="559" selection-start-column="37" selection-end-line="559" selection-end-column="37" />
+        <state relative-caret-position="350">
+          <caret line="754" column="43" lean-forward="true" selection-start-line="754" selection-start-column="43" selection-end-line="754" selection-end-column="43" />
           <folding>
             <element signature="e#1580#1598#0" expanded="true" />
           </folding>
