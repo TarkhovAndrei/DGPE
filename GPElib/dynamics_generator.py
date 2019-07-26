@@ -750,13 +750,16 @@ class DynamicsGenerator(object):
 		if self.use_matrix_operations_for_energy:
 			self.X = np.moveaxis(ODE_result[:,:self.N_wells], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
 			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
-			self.energy = self.calc_energy_XY_global(ODE_result)
-			self.number_of_particles = self.calc_nop_XY_global(ODE_result)
-			idx_desired = np.nonzero((self.energy[:-1] - self.E_desired) * (self.energy[1:] - self.E_desired) < 0)[0]
+			tmp_energy = self.calc_energy_XY_global(ODE_result)
+			tmp_nop = self.calc_nop_XY_global(ODE_result)
+			idx_desired = np.nonzero((tmp_energy[:-1] - self.E_desired) * (tmp_energy[1:] - self.E_desired) < 0)[0]
 			try:
 				self.n_steps = idx_desired[0] + 2
 			except:
 				self.n_steps = 1
+			self.energy[:self.n_steps] = tmp_energy
+			self.number_of_particles[:self.n_steps] = tmp_nop
+
 			self.icurr = self.n_steps
 			self.inext = self.n_steps + 1
 		else:
