@@ -558,8 +558,8 @@ class DynamicsGenerator(object):
 			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
 			self.icurr = self.n_steps - 1
 			self.inext = self.n_steps
-			self.energy = self.calc_energy_XY_global(ODE_result)
-			self.number_of_particles = self.calc_nop_XY_global(ODE_result)
+			self.energy[:self.n_steps] = self.calc_energy_XY_global(ODE_result)[:self.n_steps]
+			self.number_of_particles[:self.n_steps] = self.calc_nop_XY_global(ODE_result)[:self.n_steps]
 		else:
 			icurr = 0
 			inext = 1
@@ -757,8 +757,8 @@ class DynamicsGenerator(object):
 				self.n_steps = idx_desired[0] + 2
 			except:
 				self.n_steps = 1
-			self.energy[:self.n_steps] = tmp_energy
-			self.number_of_particles[:self.n_steps] = tmp_nop
+			self.energy[:self.n_steps] = tmp_energy[:self.n_steps]
+			self.number_of_particles[:self.n_steps] = tmp_nop[:self.n_steps]
 
 			self.icurr = self.n_steps
 			self.inext = self.n_steps + 1
