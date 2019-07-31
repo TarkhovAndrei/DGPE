@@ -77,6 +77,7 @@ class DynamicsGenerator(object):
 		self.calculation_type = kwargs.get('calculation_type', 'lyap')
 		self.integration_method = kwargs.get('intergration_method', 'RK45')
 		self.smooth_quench = kwargs.get('smooth_quench', False)
+		self.smooth_quench_to_room = kwargs.get('smooth_quench_to_room', False)
 
 		self.rtol = kwargs.get('rtol', 1e-6)
 		self.atol = kwargs.get('atol', 1e-6)
@@ -671,6 +672,10 @@ class DynamicsGenerator(object):
 	def quenching_profile(self, time=0.):
 		return -self.gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - self.lam2 * np.exp(-self.lam2 * time))
 
+	def quenching_profile_to_room(self, psi, time=0.):
+		return (-self.gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - self.lam2 * np.exp(-self.lam2 * time))
+				+ self.gamma * self.gamma_reduction * (self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0) - self.E_desired))
+
 	def get_gamma_reduction(self, psi, time=0.):
 		if self.temperature_dependent_rate:
 			if self.use_matrix_operations:
@@ -714,7 +719,7 @@ class DynamicsGenerator(object):
 										self.nn_idz_2,
 										self.h_dis_x_flat, self.h_dis_y_flat,
 										self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat,
-										self.E_desired, self.gamma_reduction, self.lam1, self.lam2, self.smooth_quench, self.temperature_dependent_rate)
+										self.E_desired, self.gamma_reduction, self.lam1, self.lam2, self.smooth_quench, self.smooth_quench_to_room, self.temperature_dependent_rate)
 
 			ODE_result_object = torchdiffeq.odeint(relaxational_ODE,
 											# self.torch_Hamiltonian_with_Relaxation_XY_fast,
@@ -752,7 +757,7 @@ class DynamicsGenerator(object):
 			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
 			tmp_energy = self.calc_energy_XY_global(ODE_result)
 			tmp_nop = self.calc_nop_XY_global(ODE_result)
-			if self.smooth_quench == False:
+			if (self.smooth_quench == False) and (self.smooth_quench_to_room == False):
 				idx_desired = np.nonzero((tmp_energy[:-1] - self.E_desired) * (tmp_energy[1:] - self.E_desired) < 0)[0]
 				try:
 					self.n_steps = idx_desired[0] + 2
@@ -1036,8 +1041,10 @@ class DynamicsGenerator(object):
 		if self.temperature_dependent_rate:
 			if self.smooth_quench:
 				self.dpsi = self.quenching_profile(time=time) * self.dpsi
+			elif self.smooth_quench_to_room:
+				self.dpsi = self.quenching_profile_to_room(self.psi, time=time) * self.dpsi
 			else:
-				self.dpsi = self.get_gamma_reduction(self.psi, time=time) * self.dpsi
+				self.dpsi = np.abs(self.gamma) * self.get_gamma_reduction(self.psi, time=time) * self.dpsi
 
 		return self.dpsi.copy()
 
@@ -1095,7 +1102,7 @@ class DynamicsGenerator(object):
 		else:
 			self.dpsi[:self.N_wells] += self.gamma * self.psi[self.N_wells:] * (self.xL * self.psi[self.N_wells:] - self.yL * self.psi[:self.N_wells])
 			self.dpsi[self.N_wells:] += -self.gamma * self.psi[:self.N_wells] * (self.xL * self.psi[self.N_wells:] - self.yL * self.psi[:self.N_wells])
-		self.dpsi = self.get_gamma_reduction(self.psi) * self.dpsi
+		self.dpsi = np.abs(self.gamma) * self.get_gamma_reduction(self.psi) * self.dpsi
 
 		return self.dpsi.copy()
 
