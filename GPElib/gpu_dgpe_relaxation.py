@@ -106,8 +106,8 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 				return (torch.cat(
 					[
 
-						(-self.quenching_gamma * torch.pow(self.lam1 - self.lam2, -1) * (
-									self.lam1 * torch.exp(-self.lam1 * t) - (self.lam2 * torch.exp(-self.lam2 * t) + self.gamma) *
+						(-torch.pow(self.lam1 - self.lam2, -1) * (
+									self.quenching_gamma * self.lam1 * torch.exp(-self.lam1 * t) - (self.lam2 * torch.exp(-self.lam2 * t) + self.gamma) *
 							self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)  * y[
 															  self.N_wells:] * (
 							 xL * y[self.N_wells:] - yL * y[:self.N_wells]))) +
@@ -117,8 +117,8 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 																						 self.N_wells:]
 						,
 
-					 -(-self.quenching_gamma * torch.pow(self.lam1 - self.lam2, -1) * (
-									self.lam1 * torch.exp(-self.lam1 * t) - (self.lam2 * torch.exp(-self.lam2 * t) + self.gamma) *
+					 -(-torch.pow(self.lam1 - self.lam2, -1) * (
+									self.quenching_gamma * self.lam1 * torch.exp(-self.lam1 * t) - (self.lam2 * torch.exp(-self.lam2 * t) + self.gamma) *
 							self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired) * y[
 															   :self.N_wells] * (
 							 xL * y[self.N_wells:] - yL * y[:self.N_wells])))

@@ -674,7 +674,7 @@ class DynamicsGenerator(object):
 		return -self.quenching_gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - self.lam2 * np.exp(-self.lam2 * time))
 
 	def quenching_profile_to_room(self, psi, time=0.):
-		return (-self.quenching_gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - (self.lam2 * np.exp(-self.lam2 * time)
+		return (- 1./(self.lam1-self.lam2) * (self.quenching_gamma * self.lam1 * np.exp(-self.lam1 * time) - (self.lam2 * np.exp(-self.lam2 * time)
 				+ self.gamma) * self.gamma_reduction * (self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0) - self.E_desired)))
 
 	def get_gamma_reduction(self, psi, time=0.):
