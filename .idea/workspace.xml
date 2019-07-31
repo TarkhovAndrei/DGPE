@@ -24,7 +24,7 @@
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="211">
-              <caret line="699" column="70" lean-forward="true" selection-start-line="699" selection-start-column="70" selection-end-line="699" selection-end-column="70" />
+              <caret line="699" column="78" selection-start-line="699" selection-start-column="78" selection-end-line="699" selection-end-column="78" />
             </state>
           </provider>
         </entry>
@@ -446,7 +446,7 @@
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="211">
-          <caret line="699" column="70" lean-forward="true" selection-start-line="699" selection-start-column="70" selection-end-line="699" selection-end-column="70" />
+          <caret line="699" column="78" selection-start-line="699" selection-start-column="78" selection-end-line="699" selection-end-column="78" />
         </state>
       </provider>
     </entry>

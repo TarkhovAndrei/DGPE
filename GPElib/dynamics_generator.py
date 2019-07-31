@@ -697,7 +697,7 @@ class DynamicsGenerator(object):
 
 		self.E_desired = E_desired
 		self.temperature_dependent_rate = temperature_dependent_rate
-		self.gamma_reduction = np.min(1./(Ecurr - self.E_desired), 1.)
+		self.gamma_reduction = np.min([1./(Ecurr - self.E_desired), 1./Ecurr])
 
 		if (E_desired - Ecurr) * self.gamma > 0:
 			self.gamma = -self.gamma
