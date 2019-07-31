@@ -1034,18 +1034,18 @@ class DynamicsGenerator(object):
 			self.dpsi[self.N_wells:] += -self.gamma_tempered * self.psi[:self.N_wells] * (
 						self.xL * self.psi[self.N_wells:] - self.yL * self.psi[:self.N_wells])
 		else:
-			self.dpsi[:self.N_wells] += self.gamma * self.psi[self.N_wells:] * (
+			self.dpsi[:self.N_wells] += self.psi[self.N_wells:] * (
 						self.xL * self.psi[self.N_wells:] - self.yL * self.psi[:self.N_wells])
-			self.dpsi[self.N_wells:] += -self.gamma * self.psi[:self.N_wells] * (
+			self.dpsi[self.N_wells:] += -self.psi[:self.N_wells] * (
 						self.xL * self.psi[self.N_wells:] - self.yL * self.psi[:self.N_wells])
 
-		if self.temperature_dependent_rate:
-			if self.smooth_quench:
-				self.dpsi = self.quenching_profile(time=time) * self.dpsi
-			elif self.smooth_quench_to_room:
-				self.dpsi = self.quenching_profile_to_room(self.psi, time=time) * self.dpsi
-			else:
-				self.dpsi = np.abs(self.gamma) * self.get_gamma_reduction(self.psi, time=time) * self.dpsi
+			if self.temperature_dependent_rate:
+				if self.smooth_quench:
+					self.dpsi = self.quenching_profile(time=time) * self.dpsi
+				elif self.smooth_quench_to_room:
+					self.dpsi = self.quenching_profile_to_room(self.psi, time=time) * self.dpsi
+				else:
+					self.dpsi = self.gamma * self.get_gamma_reduction(self.psi, time=time) * self.dpsi
 
 		return self.dpsi.copy()
 
@@ -1103,7 +1103,7 @@ class DynamicsGenerator(object):
 		else:
 			self.dpsi[:self.N_wells] += self.gamma * self.psi[self.N_wells:] * (self.xL * self.psi[self.N_wells:] - self.yL * self.psi[:self.N_wells])
 			self.dpsi[self.N_wells:] += -self.gamma * self.psi[:self.N_wells] * (self.xL * self.psi[self.N_wells:] - self.yL * self.psi[:self.N_wells])
-		self.dpsi = np.abs(self.gamma) * self.get_gamma_reduction(self.psi) * self.dpsi
+		self.dpsi = self.get_gamma_reduction(self.psi) * self.dpsi
 
 		return self.dpsi.copy()
 
