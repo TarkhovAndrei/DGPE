@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" afterDir="false" />
     </list>
     <ignored path="DGPE.iws" />
@@ -24,8 +25,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="673" lean-forward="true" selection-start-line="673" selection-end-line="673" />
+            <state relative-caret-position="102">
+              <caret line="703" lean-forward="true" selection-start-line="703" selection-end-line="703" />
             </state>
           </provider>
         </entry>
@@ -33,8 +34,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-123">
-              <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+            <state relative-caret-position="343">
+              <caret line="136" column="25" lean-forward="true" selection-start-line="136" selection-start-column="25" selection-end-line="136" selection-end-column="25" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="184">
+              <caret line="16" column="32" selection-start-line="16" selection-start-column="32" selection-end-line="16" selection-end-column="32" />
             </state>
           </provider>
         </entry>
@@ -50,8 +60,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>rk4</find>
-      <find>def torch_</find>
       <find>torchdiffeq.odeint</find>
       <find>torch_Hami</find>
       <find>odeint</find>
@@ -80,6 +88,8 @@
       <find>self.smooth_quench_to_room</find>
       <find>self.smooth_quench</find>
       <find>quenching_profile</find>
+      <find>self.gamma</find>
+      <find>self.quenching_profile</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -110,10 +120,10 @@
         <option value="$PROJECT_DIR$/GPE_phase_exp.py" />
         <option value="$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py" />
         <option value="$PROJECT_DIR$/GPElib/gpu_kernel.py" />
-        <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" />
+        <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" />
         <option value="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
+        <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" />
       </list>
     </option>
   </component>
@@ -421,27 +431,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
+    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="66" column="97" lean-forward="true" selection-start-line="66" selection-start-column="97" selection-end-line="66" selection-end-column="97" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="343">
+          <caret line="136" column="25" lean-forward="true" selection-start-line="136" selection-start-column="25" selection-end-line="136" selection-end-column="25" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
+    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-123">
-          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+        <state relative-caret-position="184">
+          <caret line="16" column="32" selection-start-line="16" selection-start-column="32" selection-end-line="16" selection-end-column="32" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="673" lean-forward="true" selection-start-line="673" selection-end-line="673" />
+        <state relative-caret-position="102">
+          <caret line="703" lean-forward="true" selection-start-line="703" selection-end-line="703" />
         </state>
       </provider>
     </entry>

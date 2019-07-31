@@ -58,6 +58,7 @@ class DynamicsGenerator(object):
 
 		self.beta_amplitude = kwargs.get('beta', 0.01)
 		self.gamma = kwargs.get('gamma', 0.01)
+		self.quenching_gamma = kwargs.get('quenching_gamma', 0.01)
 
 		self.use_matrix_operations = kwargs.get('use_matrix_operations', True)
 		self.use_matrix_operations_for_energy = kwargs.get('use_matrix_operations_for_energy', True)
@@ -502,7 +503,7 @@ class DynamicsGenerator(object):
 			ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
 			self.T[:self.n_steps] = ts
 
-			conservative_ODE = DGPE_ODE(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma,
+			conservative_ODE = DGPE_ODE(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma, self.quenching_gamma,
 				 self.nn_idx_1, self.nn_idx_2, self.nn_idy_1, self.nn_idy_2, self.nn_idz_1, self.nn_idz_2,
 				 self.h_dis_x_flat, self.h_dis_y_flat,
 				 self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat)
@@ -670,10 +671,10 @@ class DynamicsGenerator(object):
 			i += 1
 
 	def quenching_profile(self, time=0.):
-		return -self.gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - self.lam2 * np.exp(-self.lam2 * time))
+		return -self.quenching_gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - self.lam2 * np.exp(-self.lam2 * time))
 
 	def quenching_profile_to_room(self, psi, time=0.):
-		return (-self.gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - self.lam2 * np.exp(-self.lam2 * time))
+		return (-self.quenching_gamma * 1./(self.lam1-self.lam2) * (self.lam1 * np.exp(-self.lam1 * time) - self.lam2 * np.exp(-self.lam2 * time))
 				+ self.gamma * self.gamma_reduction * (self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0) - self.E_desired))
 
 	def get_gamma_reduction(self, psi, time=0.):
@@ -714,7 +715,7 @@ class DynamicsGenerator(object):
 			ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
 			self.T[:N_max] = ts
 
-			relaxational_ODE = DGPE_ODE_RELAXATION(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma,
+			relaxational_ODE = DGPE_ODE_RELAXATION(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma, self.quenching_gamma,
 										self.nn_idx_1, self.nn_idx_2, self.nn_idy_1, self.nn_idy_2, self.nn_idz_1,
 										self.nn_idz_2,
 										self.h_dis_x_flat, self.h_dis_y_flat,
@@ -722,7 +723,7 @@ class DynamicsGenerator(object):
 										self.E_desired, self.gamma_reduction, self.lam1, self.lam2, self.smooth_quench, self.smooth_quench_to_room, self.temperature_dependent_rate)
 
 			ODE_result_object = torchdiffeq.odeint(relaxational_ODE,
-											# self.torch_Hamiltonian_with_Relaxation_XY_fast,
+											# self.torch_Hamiltonian_with_Relaxation_XY_fast,s
 												   torch.from_numpy(psi0).type(self.torch_FloatPrecision).to(self.torch_device),#, dtype=self.torch_FloatPrecision),
 												   torch.from_numpy(ts).type(self.torch_FloatPrecision).to(self.torch_device),# dtype=self.torch_FloatPrecision),
 												   rtol=self.rtol,

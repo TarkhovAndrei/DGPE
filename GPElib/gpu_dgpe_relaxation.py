@@ -6,7 +6,7 @@ import numpy as np
 
 class DGPE_ODE_RELAXATION(torch.nn.Module):
 
-	def __init__(self, device, N_wells, J, anisotropy, gamma,
+	def __init__(self, device, N_wells, J, anisotropy, gamma, quenching_gamma,
 				 nn_idx_1, nn_idx_2, nn_idy_1, nn_idy_2, nn_idz_1, nn_idz_2,
 				 h_dis_x_flat, h_dis_y_flat,
 				 beta_disorder_array_flattened, beta_flat, e_disorder_flat,
@@ -18,6 +18,8 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 		self.anisotropy = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + anisotropy).to(device), requires_grad=False)
 
 		self.gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + gamma).to(device), requires_grad=False)
+		self.quenching_gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + quenching_gamma).to(device),
+												  requires_grad=False)
 
 		self.nn_idx_1 = torch.nn.Parameter(torch.tensor(nn_idx_1, dtype=torch.int64).to(device), requires_grad=False)
 		self.nn_idx_2 = torch.nn.Parameter(torch.tensor(nn_idx_2, dtype=torch.int64).to(device), requires_grad=False)
@@ -85,7 +87,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 		else:
 			if self.smooth_quench.item() > 0:
 				return (torch.cat(
-					[self.quenching_profile(t) * self.gamma * y[
+					[self.quenching_profile(t) * self.quenching_gamma * y[
 																											   self.N_wells:] * (
 							 xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
 
@@ -94,7 +96,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 																						 self.N_wells:]
 						,
 
-					 -self.quenching_profile(t) * self.gamma * y[
+					 -self.quenching_profile(t) * self.quenching_gamma * y[
 																												:self.N_wells] * (
 							 xL * y[self.N_wells:] - yL * y[:self.N_wells]) - self.e_disorder * y[:self.N_wells] +
 					 xL - self.h_dis_x_flat - self.beta *
@@ -102,7 +104,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 				)
 			elif self.smooth_quench_to_room.item() > 0:
 				return (torch.cat(
-					[(self.quenching_profile(t) + self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)) * self.gamma * y[
+					[(self.quenching_profile(t)* self.quenching_gamma + self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)* self.gamma)  * y[
 															  self.N_wells:] * (
 							 xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
 
@@ -111,7 +113,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 																						 self.N_wells:]
 						,
 
-					 -(self.quenching_profile(t) + self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)) * self.gamma * y[
+					 -(self.quenching_profile(t)* self.quenching_gamma + self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired) * self.gamma) * y[
 															   :self.N_wells] * (
 							 xL * y[self.N_wells:] - yL * y[:self.N_wells]) - self.e_disorder * y[:self.N_wells] +
 					 xL - self.h_dis_x_flat - self.beta *

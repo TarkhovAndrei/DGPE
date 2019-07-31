@@ -6,7 +6,7 @@ import numpy as np
 
 class DGPE_ODE(torch.nn.Module):
 
-	def __init__(self, device, N_wells, J, anisotropy, gamma,
+	def __init__(self, device, N_wells, J, anisotropy, gamma, quenching_gamma,
 				 nn_idx_1, nn_idx_2, nn_idy_1, nn_idy_2, nn_idz_1, nn_idz_2,
 				 h_dis_x_flat, h_dis_y_flat,
 				 beta_disorder_array_flattened, beta_flat, e_disorder_flat
@@ -17,6 +17,7 @@ class DGPE_ODE(torch.nn.Module):
 		self.anisotropy = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + anisotropy).to(device), requires_grad=False)
 
 		self.gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + gamma).to(device), requires_grad=False)
+		self.quenching_gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + quenching_gamma).to(device), requires_grad=False)
 
 		# self.torch_N_wells = torch.tensor(self.N_wells, tf.int64)
 
