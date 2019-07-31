@@ -107,8 +107,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 							 xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
 
 					 self.e_disorder * y[self.N_wells:] - yL + self.h_dis_y_flat + self.beta *
-					 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
-																						 self.N_wells:]
+					 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[self.N_wells:]
 						,
 
 					 -self.quenching_profile_to_room(y,xL,yL,t) * y[:self.N_wells] * (
