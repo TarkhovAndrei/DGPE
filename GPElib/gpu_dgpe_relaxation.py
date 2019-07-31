@@ -10,7 +10,8 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 				 nn_idx_1, nn_idx_2, nn_idy_1, nn_idy_2, nn_idz_1, nn_idz_2,
 				 h_dis_x_flat, h_dis_y_flat,
 				 beta_disorder_array_flattened, beta_flat, e_disorder_flat,
-				 E_desired, gamma_reduction, lam1, lam2, smooth_quench, smooth_quench_to_room, temperature_dependent_rate
+				 E_desired, gamma_reduction, lam1, lam2, smooth_quench, smooth_quench_to_room, temperature_dependent_rate,
+				 quenching_extremum_time
 				 ):
 		super(DGPE_ODE_RELAXATION, self).__init__()
 
@@ -46,6 +47,8 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 		self.smooth_quench_to_room = torch.nn.Parameter(torch.tensor(smooth_quench_to_room, dtype=torch.int64).to(device), requires_grad=False)
 		self.temperature_dependent_rate = torch.nn.Parameter(torch.tensor(temperature_dependent_rate, dtype=torch.int64).to(device),
 											requires_grad=False)
+		self.quenching_extremum_time = torch.nn.Parameter(torch.tensor(quenching_extremum_time).to(device), requires_grad=False)
+
 
 	def forward(self, t, y):
 		xL = (self.J * (
@@ -104,29 +107,47 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 				)
 			elif self.smooth_quench_to_room.item() > 0:
 				return (torch.cat(
-					[
-
-						(-torch.pow(self.lam1 - self.lam2, -1) * (
-									self.quenching_gamma * self.lam1 * torch.exp(-self.lam1 * t) - (self.lam2 * torch.exp(-self.lam2 * t) + self.gamma) *
-							self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired)  * y[
-															  self.N_wells:] * (
-							 xL * y[self.N_wells:] - yL * y[:self.N_wells]))) +
+					[self.quenching_profile_to_room(y,xL,yL,t) * y[
+																		self.N_wells:] * (
+							 xL * y[self.N_wells:] - yL * y[:self.N_wells]) +
 
 					 self.e_disorder * y[self.N_wells:] - yL + self.h_dis_y_flat + self.beta *
 					 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
 																						 self.N_wells:]
 						,
 
-					 -(-torch.pow(self.lam1 - self.lam2, -1) * (
-									self.quenching_gamma * self.lam1 * torch.exp(-self.lam1 * t) - (self.lam2 * torch.exp(-self.lam2 * t) + self.gamma) *
-							self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired) * y[
-															   :self.N_wells] * (
-							 xL * y[self.N_wells:] - yL * y[:self.N_wells])))
-
-					- self.e_disorder * y[:self.N_wells] +
+					 -self.quenching_profile_to_room(y,xL,yL,t) * y[
+																		 :self.N_wells] * (
+							 xL * y[self.N_wells:] - yL * y[:self.N_wells]) - self.e_disorder * y[:self.N_wells] +
 					 xL - self.h_dis_x_flat - self.beta *
 					 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
 				)
+			# return (torch.cat(
+			# 	[
+			#
+			# 		(-torch.pow(self.lam1 - self.lam2, -1) * (
+			# 				self.quenching_gamma * self.lam1 * torch.exp(-self.lam1 * t) - (
+			# 					self.lam2 * torch.exp(-self.lam2 * t) + self.gamma) *
+			# 				self.gamma_reduction * (self.calc_energy_XY(y, xL, yL) - self.E_desired) * y[
+			# 																						   self.N_wells:] * (
+			# 						xL * y[self.N_wells:] - yL * y[:self.N_wells]))) +
+			#
+			# 		self.e_disorder * y[self.N_wells:] - yL + self.h_dis_y_flat + self.beta *
+			# 		(torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[
+			# 																			self.N_wells:]
+			# 		,
+			#
+			# 		-(-torch.pow(self.lam1 - self.lam2, -1) * (
+			# 				self.quenching_gamma * self.lam1 * torch.exp(-self.lam1 * t) - (
+			# 					self.lam2 * torch.exp(-self.lam2 * t) + self.gamma) *
+			# 				self.gamma_reduction * (self.calc_energy_XY(y, xL, yL) - self.E_desired) * y[
+			# 																						   :self.N_wells] * (
+			# 						xL * y[self.N_wells:] - yL * y[:self.N_wells])))
+			#
+			# 		- self.e_disorder * y[:self.N_wells] +
+			# 		xL - self.h_dis_x_flat - self.beta *
+			# 		(torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
+			# )
 
 			else:
 				return (torch.cat(
@@ -156,6 +177,15 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 
 	def quenching_profile(self, time):
 		return -torch.pow(self.lam1-self.lam2, -1) * (self.lam1 * torch.exp(-self.lam1 * time) - self.lam2 * torch.exp(-self.lam2 * time))
+
+	def quenching_profile_to_room(self, y, xL, yL, time):
+		if time <= self.quenching_extremum_time:
+			return self.quenching_profile(time) * self.quenching_gamma
+		else:
+			return ((self.quenching_profile(time) * self.quenching_gamma +
+					self.gamma * (1. - torch.exp(-self.lam2 * (time - self.quenching_extremum_time))))
+				   * 1./ (self.E_desired)
+				   * (self.calc_energy_XY(y,xL,yL) - self.E_desired))
 
 	# def quenching_profile_to_room(self, psi, time=0.):
 	# 	return (-self.gamma * torch.pow(self.lam1-self.lam2, -1) * (self.lam1 * torch.exp(-self.lam1 * time) - self.lam2 * torch.exp(-self.lam2 * time))
