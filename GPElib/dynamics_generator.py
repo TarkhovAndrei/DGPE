@@ -680,7 +680,10 @@ class DynamicsGenerator(object):
 			self.quenching_extremum_energy = self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0)
 			return self.quenching_profile(time)
 		else:
-			return (self.quenching_profile(time) + self.gamma * (1. - np.exp(-self.lam2 * (time - self.quenching_extremum_time)))) * 1./ (self.quenching_extremum_energy - self.E_desired) * (self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0) - self.E_desired)
+			return ((self.quenching_profile(time) +
+					self.gamma * (1. - np.exp(-self.lam2 * (time - self.quenching_extremum_time))))
+				   * 1./ (self.E_desired)
+				   * (self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0) - self.E_desired))
 
 	def get_gamma_reduction(self, psi, time=0.):
 		if self.temperature_dependent_rate:
