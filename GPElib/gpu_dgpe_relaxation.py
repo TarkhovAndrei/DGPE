@@ -115,6 +115,8 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 					 xL - self.h_dis_x_flat - self.beta *
 					 (torch.pow(y[self.N_wells:], 2) + torch.pow(y[:self.N_wells], 2)) * y[:self.N_wells]], dim=0)
 				)
+
+
 			# return (torch.cat(
 			# 	[
 			#

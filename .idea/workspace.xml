@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" afterDir="false" />
     </list>
     <ignored path="DGPE.iws" />
@@ -20,20 +21,59 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GPE_inst.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="328">
-              <caret line="731" lean-forward="true" selection-start-line="731" selection-end-line="731" />
+            <state>
+              <caret selection-end-line="25" selection-end-column="3" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
+        <entry file="file://$PROJECT_DIR$/GPE_phase_exp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-62">
-              <caret line="21" column="13" selection-start-line="21" selection-start-column="13" selection-end-line="21" selection-end-column="13" />
+            <state relative-caret-position="375">
+              <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="649">
+              <caret line="55" column="5" selection-start-line="55" selection-start-column="5" selection-end-line="55" selection-end-column="5" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GPElib/lyapunov_generator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="420">
+              <caret line="28" column="5" selection-start-line="28" selection-start-column="5" selection-end-line="28" selection-end-column="6" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GPE_phase.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="450">
+              <caret line="33" column="22" selection-start-line="33" selection-start-column="22" selection-end-line="33" selection-end-column="22" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="157">
+              <caret line="705" lean-forward="true" selection-start-line="705" selection-end-line="705" />
+              <folding>
+                <element signature="e#1580#1598#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -41,8 +81,44 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="184">
-              <caret line="16" column="32" selection-start-line="16" selection-start-column="32" selection-end-line="16" selection-end-column="32" />
+            <state relative-caret-position="649">
+              <caret line="80" column="9" lean-forward="true" selection-start-line="80" selection-start-column="9" selection-end-line="80" selection-end-column="9" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="310">
+              <caret line="179" column="70" lean-forward="true" selection-start-line="179" selection-start-column="70" selection-end-line="179" selection-end-column="70" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/README.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="SPLIT">
+              <first_editor relative-caret-position="330">
+                <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
+              </first_editor>
+              <second_editor />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret selection-end-line="25" selection-end-column="3" />
             </state>
           </provider>
         </entry>
@@ -58,13 +134,10 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>odeint</find>
-      <find>torch.</find>
       <find>DGPE_ODE</find>
       <find>torch_get_gamma</find>
       <find>torch_gamma_reduction</find>
       <find>scipy</find>
-      <find>calc_energy_XY</find>
       <find>'torch'</find>
       <find>'tf'</find>
       <find>tensorflow</find>
@@ -88,6 +161,9 @@
       <find>self.quenching_gamma</find>
       <find>quenching_profile_to</find>
       <find>self.quenching_profile</find>
+      <find>run_relaxation</find>
+      <find>self.gamma</find>
+      <find>calc_energy_XY</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -120,15 +196,16 @@
         <option value="$PROJECT_DIR$/GPElib/gpu_kernel.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" />
-        <option value="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
         <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" />
+        <option value="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="70" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="151" />
+    <option name="y" value="365" />
     <option name="width" value="1440" />
-    <option name="height" value="810" />
+    <option name="height" value="821" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -216,7 +293,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="832" extended-state="6" />
+    <frame x="151" y="365" width="1440" height="821" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info active="true" id="Project" order="0" visible="true" weight="0.18181819" />
@@ -377,17 +454,40 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/gpu_kernel.py" />
-    <entry file="file://$PROJECT_DIR$/GPE_inst.py">
+    <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
           <caret selection-end-line="25" selection-end-column="3" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPE_phase_exp.py">
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="330">
+            <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+        <state relative-caret-position="649">
+          <caret line="80" column="9" lean-forward="true" selection-start-line="80" selection-start-column="9" selection-end-line="80" selection-end-column="9" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="310">
+          <caret line="179" column="70" lean-forward="true" selection-start-line="179" selection-start-column="70" selection-end-line="179" selection-end-column="70" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -405,48 +505,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
+    <entry file="file://$PROJECT_DIR$/GPE_phase_exp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPE_inst.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
           <caret selection-end-line="25" selection-end-column="3" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="300">
-            <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="660">
+        <state relative-caret-position="649">
           <caret line="55" column="5" selection-start-line="55" selection-start-column="5" selection-end-line="55" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="184">
-          <caret line="16" column="32" selection-start-line="16" selection-start-column="32" selection-end-line="16" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-62">
-          <caret line="21" column="13" selection-start-line="21" selection-start-column="13" selection-end-line="21" selection-end-column="13" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="328">
-          <caret line="731" lean-forward="true" selection-start-line="731" selection-end-line="731" />
+        <state relative-caret-position="157">
+          <caret line="705" lean-forward="true" selection-start-line="705" selection-end-line="705" />
+          <folding>
+            <element signature="e#1580#1598#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

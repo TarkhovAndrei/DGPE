@@ -701,9 +701,11 @@ class DynamicsGenerator(object):
 	def run_relaxation(self, no_pert=False, E_desired=0, temperature_dependent_rate=False, N_max=1e+7):
 
 		self.set_constants_of_motion_local(0, 0)
+		Ecurr = self.calc_energy_XY(self.X[:,:,:,0], self.Y[:,:,:,0], 0)
+		Enext = self.calc_energy_XY(self.X[:,:,:,0], self.Y[:,:,:,0], 0)
 
-		Ecurr = self.energy[0]
-		Enext = self.energy[0]
+		# Ecurr = self.energy[0]
+		# Enext = self.energy[0]
 
 		# self.temperature_dependent_rate = False
 
