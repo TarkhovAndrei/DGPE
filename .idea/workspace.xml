@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" afterDir="false" />
     </list>
@@ -42,7 +43,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="649">
+            <state relative-caret-position="765">
               <caret line="55" column="5" selection-start-line="55" selection-start-column="5" selection-end-line="55" selection-end-column="5" />
             </state>
           </provider>
@@ -69,8 +70,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="157">
-              <caret line="705" lean-forward="true" selection-start-line="705" selection-end-line="705" />
+            <state relative-caret-position="572">
+              <caret line="690" lean-forward="true" selection-start-line="690" selection-end-line="690" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -79,10 +80,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/Library/Caches/PyCharmCE2019.1/python_stubs/1054564204/numpy/core/multiarray.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="67080">
+              <caret line="4472" column="8" selection-start-line="4472" selection-start-column="8" selection-end-line="4472" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="649">
-              <caret line="80" column="9" lean-forward="true" selection-start-line="80" selection-start-column="9" selection-end-line="80" selection-end-column="9" />
+            <state relative-caret-position="1118">
+              <caret line="80" column="9" selection-start-line="80" selection-start-column="9" selection-end-line="80" selection-end-column="9" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -93,8 +103,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="310">
-              <caret line="179" column="70" lean-forward="true" selection-start-line="179" selection-start-column="70" selection-end-line="179" selection-end-column="70" />
+            <state relative-caret-position="705">
+              <caret line="182" column="78" lean-forward="true" selection-start-line="182" selection-start-column="78" selection-end-line="182" selection-end-column="78" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -107,18 +117,9 @@
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
               <first_editor relative-caret-position="330">
-                <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
+                <caret line="22" selection-start-line="22" selection-end-line="22" />
               </first_editor>
               <second_editor />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GPE_lyap.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret selection-end-line="25" selection-end-column="3" />
             </state>
           </provider>
         </entry>
@@ -134,11 +135,8 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>DGPE_ODE</find>
-      <find>torch_get_gamma</find>
       <find>torch_gamma_reduction</find>
       <find>scipy</find>
-      <find>'torch'</find>
       <find>'tf'</find>
       <find>tensorflow</find>
       <find>torch</find>
@@ -162,8 +160,10 @@
       <find>quenching_profile_to</find>
       <find>self.quenching_profile</find>
       <find>run_relaxation</find>
-      <find>self.gamma</find>
       <find>calc_energy_XY</find>
+      <find>e</find>
+      <find>h_dis_x_flat</find>
+      <find>'torch'</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -196,16 +196,15 @@
         <option value="$PROJECT_DIR$/GPElib/gpu_kernel.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" />
-        <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" />
         <option value="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
+        <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="151" />
-    <option name="y" value="365" />
-    <option name="width" value="1440" />
-    <option name="height" value="821" />
+    <option name="y" value="23" />
+    <option name="width" value="1313" />
+    <option name="height" value="1350" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -293,10 +292,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="151" y="365" width="1440" height="821" extended-state="0" />
+    <frame x="0" y="23" width="1313" height="1350" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" id="Project" order="0" visible="true" weight="0.18181819" />
+      <window_info active="true" id="Project" order="0" visible="true" weight="0.1996904" />
       <window_info id="Structure" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -461,33 +460,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="330">
-            <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
-          </first_editor>
-          <second_editor />
+    <entry file="file://$PROJECT_DIR$/GPE_inst.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="25" selection-end-column="3" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
+    <entry file="file://$PROJECT_DIR$/GPE_phase_exp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="649">
-          <caret line="80" column="9" lean-forward="true" selection-start-line="80" selection-start-column="9" selection-end-line="80" selection-end-column="9" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="375">
+          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
+    <entry file="file://$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="310">
-          <caret line="179" column="70" lean-forward="true" selection-start-line="179" selection-start-column="70" selection-end-line="179" selection-end-column="70" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="765">
+          <caret line="55" column="5" selection-start-line="55" selection-start-column="5" selection-end-line="55" selection-end-column="5" />
         </state>
       </provider>
     </entry>
@@ -505,31 +495,47 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPE_phase_exp.py">
+    <entry file="file://$USER_HOME$/Library/Caches/PyCharmCE2019.1/python_stubs/1054564204/numpy/core/multiarray.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
+        <state relative-caret-position="67080">
+          <caret line="4472" column="8" selection-start-line="4472" selection-start-column="8" selection-end-line="4472" selection-end-column="8" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPE_inst.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret selection-end-line="25" selection-end-column="3" />
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="330">
+            <caret line="22" selection-start-line="22" selection-end-line="22" />
+          </first_editor>
+          <second_editor />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py">
+    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="649">
-          <caret line="55" column="5" selection-start-line="55" selection-start-column="5" selection-end-line="55" selection-end-column="5" />
+        <state relative-caret-position="1118">
+          <caret line="80" column="9" selection-start-line="80" selection-start-column="9" selection-end-line="80" selection-end-column="9" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="705">
+          <caret line="182" column="78" lean-forward="true" selection-start-line="182" selection-start-column="78" selection-end-line="182" selection-end-column="78" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="157">
-          <caret line="705" lean-forward="true" selection-start-line="705" selection-end-line="705" />
+        <state relative-caret-position="572">
+          <caret line="690" lean-forward="true" selection-start-line="690" selection-end-line="690" />
           <folding>
             <element signature="e#1580#1598#0" expanded="true" />
           </folding>

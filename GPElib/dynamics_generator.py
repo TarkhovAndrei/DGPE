@@ -683,7 +683,7 @@ class DynamicsGenerator(object):
 			return ((self.quenching_profile(time) +
 					self.gamma * (1. - np.exp(-self.lam2 * (time - self.quenching_extremum_time))))
 				   * 1./ (self.E_desired)
-				   * (self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0) - self.E_desired))
+				   * np.abs(self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0) - self.E_desired))
 
 		# return (((self.quenching_profile(time) + self.gamma * (1. - np.exp(-self.lam2 * (time - self.quenching_extremum_time))))
 		# 		 * 1. / (self.E_desired)
