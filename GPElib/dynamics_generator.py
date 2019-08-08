@@ -711,10 +711,13 @@ class DynamicsGenerator(object):
 
 		self.E_desired = E_desired
 		self.temperature_dependent_rate = temperature_dependent_rate
-		if np.abs(Ecurr - self.E_desired) < 1e-2:
-			self.gamma_reduction = 1.
-		else:
-			self.gamma_reduction = 1./(Ecurr - self.E_desired)
+		self.gamma_reduction = 1.
+
+		if self.temperature_dependent_rate:
+			if np.abs(Ecurr - self.E_desired) < 1e-2:
+				self.gamma_reduction = 1.
+			else:
+				self.gamma_reduction = 1./(Ecurr - self.E_desired)
 
 		if (E_desired - Ecurr - 1e-2) * self.gamma > 0:
 			self.gamma = -self.gamma
@@ -1065,6 +1068,8 @@ class DynamicsGenerator(object):
 					self.dpsi = self.quenching_profile_to_room(self.psi, time=time) * self.dpsi
 				else:
 					self.dpsi = self.gamma * self.get_gamma_reduction(self.psi, time=time) * self.dpsi
+			else:
+				self.dpsi *= self.gamma
 
 		return self.dpsi.copy()
 

@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" afterDir="false" />
     </list>
     <ignored path="DGPE.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -67,11 +65,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="572">
-              <caret line="690" lean-forward="true" selection-start-line="690" selection-end-line="690" />
+            <state relative-caret-position="440">
+              <caret line="1072" selection-start-line="1072" selection-end-line="1072" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -100,11 +98,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="705">
-              <caret line="182" column="78" lean-forward="true" selection-start-line="182" selection-start-column="78" selection-end-line="182" selection-end-column="78" />
+            <state relative-caret-position="64">
+              <caret line="71" column="14" lean-forward="true" selection-start-line="71" selection-start-column="14" selection-end-line="71" selection-end-column="14" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -164,6 +162,7 @@
       <find>e</find>
       <find>h_dis_x_flat</find>
       <find>'torch'</find>
+      <find>quenching_extremum_time</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -196,15 +195,15 @@
         <option value="$PROJECT_DIR$/GPElib/gpu_kernel.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" />
-        <option value="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
         <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" />
+        <option value="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="y" value="23" />
-    <option name="width" value="1313" />
-    <option name="height" value="1350" />
+    <option name="width" value="1440" />
+    <option name="height" value="810" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -292,10 +291,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1313" height="1350" extended-state="0" />
+    <frame x="0" y="23" width="1440" height="810" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" id="Project" order="0" visible="true" weight="0.1996904" />
+      <window_info active="true" id="Project" order="0" visible="true" weight="0.18181819" />
       <window_info id="Structure" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -522,22 +521,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
+    <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="182" column="78" lean-forward="true" selection-start-line="182" selection-start-column="78" selection-end-line="182" selection-end-column="78" />
+        <state relative-caret-position="440">
+          <caret line="1072" selection-start-line="1072" selection-end-line="1072" />
           <folding>
-            <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#1580#1598#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
+    <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="572">
-          <caret line="690" lean-forward="true" selection-start-line="690" selection-end-line="690" />
+        <state relative-caret-position="64">
+          <caret line="71" column="14" lean-forward="true" selection-start-line="71" selection-start-column="14" selection-end-line="71" selection-end-column="14" />
           <folding>
-            <element signature="e#1580#1598#0" expanded="true" />
+            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
