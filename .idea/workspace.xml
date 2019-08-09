@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" afterDir="false" />
     </list>
     <ignored path="DGPE.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -68,8 +69,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="440">
-              <caret line="1072" selection-start-line="1072" selection-end-line="1072" />
+            <state relative-caret-position="208">
+              <caret line="685" column="21" selection-start-line="685" selection-start-column="21" selection-end-line="685" selection-end-column="21" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -101,8 +102,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="64">
-              <caret line="71" column="14" lean-forward="true" selection-start-line="71" selection-start-column="14" selection-end-line="71" selection-end-column="14" />
+            <state relative-caret-position="327">
+              <caret line="182" column="69" lean-forward="true" selection-start-line="182" selection-start-column="69" selection-end-line="182" selection-end-column="69" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -195,8 +196,8 @@
         <option value="$PROJECT_DIR$/GPElib/gpu_kernel.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" />
-        <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" />
         <option value="$PROJECT_DIR$/GPElib/dynamics_generator.py" />
+        <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" />
       </list>
     </option>
   </component>
@@ -511,6 +512,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="208">
+          <caret line="685" column="21" selection-start-line="685" selection-start-column="21" selection-end-line="685" selection-end-column="21" />
+          <folding>
+            <element signature="e#1580#1598#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1118">
@@ -521,20 +532,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="440">
-          <caret line="1072" selection-start-line="1072" selection-end-line="1072" />
-          <folding>
-            <element signature="e#1580#1598#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="64">
-          <caret line="71" column="14" lean-forward="true" selection-start-line="71" selection-start-column="14" selection-end-line="71" selection-end-column="14" />
+        <state relative-caret-position="327">
+          <caret line="182" column="69" lean-forward="true" selection-start-line="182" selection-start-column="69" selection-end-line="182" selection-end-column="69" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
