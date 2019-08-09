@@ -176,7 +176,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 
 	def quenching_profile_to_room(self, y, xL, yL, time):
 		if time.item() <= self.quenching_extremum_time.item():
-			self.quenching_extremum_energy = self.calc_energy_XY(y,xL,yL)
+			self.quenching_extremum_energy.data.copy(self.calc_energy_XY(y,xL,yL).data)
 			return self.quenching_profile(time) * self.quenching_gamma
 		else:
 			return ((self.quenching_profile(time) * self.quenching_gamma +

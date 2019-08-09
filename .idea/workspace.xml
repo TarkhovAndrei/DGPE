@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3653e946-7fbc-4540-9b90-60064c2a062f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/GPElib/dynamics_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/dynamics_generator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py" afterDir="false" />
     </list>
     <ignored path="DGPE.iws" />
@@ -69,8 +68,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="393">
-              <caret line="679" column="105" lean-forward="true" selection-start-line="679" selection-start-column="12" selection-end-line="679" selection-end-column="105" />
+            <state relative-caret-position="423">
+              <caret line="681" column="13" lean-forward="true" selection-start-line="681" selection-start-column="13" selection-end-line="681" selection-end-column="13" />
               <folding>
                 <element signature="e#1580#1598#0" expanded="true" />
               </folding>
@@ -103,7 +102,7 @@
         <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="393">
-              <caret line="41" column="13" selection-start-line="41" selection-start-column="13" selection-end-line="41" selection-end-column="13" />
+              <caret line="178" column="87" lean-forward="true" selection-start-line="178" selection-start-column="87" selection-end-line="178" selection-end-column="87" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -134,7 +133,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>'tf'</find>
       <find>tensorflow</find>
       <find>torch</find>
       <find>tf</find>
@@ -164,6 +162,7 @@
       <find>quenching_extremum_time</find>
       <find>E_new</find>
       <find>self.quenching_extremum_energy</find>
+      <find>quenching_extremum_energy</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -512,16 +511,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="393">
-          <caret line="679" column="105" lean-forward="true" selection-start-line="679" selection-start-column="12" selection-end-line="679" selection-end-column="105" />
-          <folding>
-            <element signature="e#1580#1598#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="353">
@@ -532,10 +521,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/dynamics_generator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="423">
+          <caret line="681" column="13" lean-forward="true" selection-start-line="681" selection-start-column="13" selection-end-line="681" selection-end-column="13" />
+          <folding>
+            <element signature="e#1580#1598#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_relaxation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="393">
-          <caret line="41" column="13" selection-start-line="41" selection-start-column="13" selection-end-line="41" selection-end-column="13" />
+          <caret line="178" column="87" lean-forward="true" selection-start-line="178" selection-start-column="87" selection-end-line="178" selection-end-column="87" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
