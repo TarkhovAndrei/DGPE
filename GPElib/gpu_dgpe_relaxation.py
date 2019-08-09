@@ -39,7 +39,7 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 		self.e_disorder = torch.nn.Parameter(torch.tensor(e_disorder_flat).to(device), requires_grad=False)
 
 		self.E_new = torch.nn.Parameter(torch.tensor(np.zeros(N_wells)).to(device), requires_grad=True)
-		self.quenching_extremum_energy = torch.nn.Parameter(torch.tensor(E_desired).to(device), requires_grad=True)
+		self.quenching_extremum_energy = torch.nn.Parameter(torch.tensor(E_desired).to(device), requires_grad=False)
 		self.E_desired = torch.nn.Parameter(torch.tensor(E_desired).to(device), requires_grad=False)
 		self.gamma_reduction = torch.nn.Parameter(torch.tensor(gamma_reduction).to(device), requires_grad=False)
 		self.lam1 = torch.nn.Parameter(torch.tensor(lam1).to(device), requires_grad=False)
@@ -176,7 +176,8 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 
 	def quenching_profile_to_room(self, y, xL, yL, time):
 		if time.item() <= self.quenching_extremum_time.item():
-			self.quenching_extremum_energy.data.copy(self.calc_energy_XY(y,xL,yL).data)
+			self.quenching_extremum_energy.zero_()
+			self.quenching_extremum_energy.add_(self.calc_energy_XY(y,xL,yL))
 			return self.quenching_profile(time) * self.quenching_gamma
 		else:
 			return ((self.quenching_profile(time) * self.quenching_gamma +
