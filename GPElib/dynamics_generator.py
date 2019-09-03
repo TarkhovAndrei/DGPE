@@ -190,11 +190,13 @@ class DynamicsGenerator(object):
 
 		if 'local_disorder_amplitude' in kwargs:
 			self.local_disorder = True
-			np.random.seed(self.local_disorder_seed)
-			self.h_dis_x_flat = self.local_disorder_amplitude * np.random.randn(self.N_wells)
-			self.h_dis_y_flat = self.local_disorder_amplitude * np.random.randn(self.N_wells)
-			self.h_dis_x_volume = self.h_dis_x_flat.reshape(self.N_tuple)
-			self.h_dis_y_volume = self.h_dis_y_flat.reshape(self.N_tuple)
+			# np.random.seed(self.local_disorder_seed)
+			# np.random.seed()
+			# self.h_dis_x_flat = self.local_disorder_amplitude * np.random.randn(self.N_wells)
+			# self.h_dis_y_flat = self.local_disorder_amplitude * np.random.randn(self.N_wells)
+			# self.h_dis_x_volume = self.h_dis_x_flat.reshape(self.N_tuple)
+			# self.h_dis_y_volume = self.h_dis_y_flat.reshape(self.N_tuple)
+			self.update_local_disorder()
 		else:
 			self.local_disorder = False
 			np.random.seed(self.local_disorder_seed)
@@ -254,6 +256,13 @@ class DynamicsGenerator(object):
 		self.error_code = ""
 		self.configure(kwargs)
 		self.generate_disorder()
+
+	def update_local_disorder(self):
+		np.random.seed()
+		self.h_dis_x_flat = self.local_disorder_amplitude * np.random.randn(self.N_wells)
+		self.h_dis_y_flat = self.local_disorder_amplitude * np.random.randn(self.N_wells)
+		self.h_dis_x_volume = self.h_dis_x_flat.reshape(self.N_tuple)
+		self.h_dis_y_volume = self.h_dis_y_flat.reshape(self.N_tuple)
 
 	def configure(self, kwargs):
 		self.PERT_EPS = 1e-8

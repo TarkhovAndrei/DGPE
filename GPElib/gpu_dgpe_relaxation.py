@@ -190,8 +190,6 @@ class DGPE_ODE_RELAXATION(torch.nn.Module):
 			# 	   * 1./ (self.E_desired)
 			# 	   * (self.calc_energy_XY(psi[:self.N_wells],psi[self.N_wells:],0) - self.E_desired))
 
-
-
 	# def quenching_profile_to_room(self, psi, time=0.):
 	# 	return (-self.gamma * torch.pow(self.lam1-self.lam2, -1) * (self.lam1 * torch.exp(-self.lam1 * time) - self.lam2 * torch.exp(-self.lam2 * time))
 	# 			+ torch.abs(self.gamma) * self.gamma_reduction * (self.calc_energy_XY(y,xL,yL) - self.E_desired))
