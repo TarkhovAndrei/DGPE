@@ -789,7 +789,7 @@ class DynamicsGenerator(object):
 			self.Y = np.moveaxis(ODE_result[:,self.N_wells:], 0, -1).reshape(self.N_tuple + (ODE_result.shape[0],))
 			tmp_energy = self.calc_energy_XY_global(ODE_result)
 			tmp_nop = self.calc_nop_XY_global(ODE_result)
-			if (self.smooth_quench == False) and (self.smooth_quench_to_room == False):
+			if ((self.smooth_quench == False) and (self.smooth_quench_to_room == False) and (not (self.temperature_dependent_rate))):
 				idx_desired = np.nonzero((tmp_energy[:-1] - self.E_desired) * (tmp_energy[1:] - self.E_desired) < 0)[0]
 				try:
 					self.n_steps = idx_desired[0] + 2
