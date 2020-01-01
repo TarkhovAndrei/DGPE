@@ -38,7 +38,7 @@ class InstabilityGenerator(TwoTrajsGenerator):
 		self.error_J = kwargs.get('error_J', 0)
 		self.error_disorder = kwargs.get('error_disorder', 0)
 
-	def run_dynamics(self):
+	def run_dynamics(self, no_pert=False):
 		TwoTrajsGenerator.run_dynamics(self)
 		self.X1 = self.X.copy()
 		self.Y1 = self.Y.copy()
