@@ -57,10 +57,10 @@ class TwoTrajsGenerator(DynamicsGenerator):
 
 	def set_constants_of_motion_local(self, i, inext):
 		DynamicsGenerator.set_constants_of_motion_local(self, i, inext)
-		self.energy1[i], self.number_of_particles1[i], self.angular_momentum1[i] = self.calc_constants_of_motion_local(self.RHO1[:,:,:,inext], self.THETA1[:,:,:,inext],
-																										self.X1[:,:,:,inext], self.Y1[:,:,:,inext])
-		self.participation_rate1[i] = np.sum(self.RHO1[:,:,:,inext] ** 4, axis=(0,1,2)) / (1e-8 + np.sum(self.RHO1[:,:,:,inext] ** 2, axis=(0,1,2)) ** 2)
-		self.effective_nonlinearity1[i] = self.beta * self.participation_rate1[i] / self.N_wells
+		# self.energy1[i], self.number_of_particles1[i], self.angular_momentum1[i] = self.calc_constants_of_motion_local(self.RHO1[:,:,:,inext], self.THETA1[:,:,:,inext],
+		# 																								self.X1[:,:,:,inext], self.Y1[:,:,:,inext])
+		# self.participation_rate1[i] = np.sum(self.RHO1[:,:,:,inext] ** 4, axis=(0,1,2)) / (1e-8 + np.sum(self.RHO1[:,:,:,inext] ** 2, axis=(0,1,2)) ** 2)
+		# self.effective_nonlinearity1[i] = self.beta * self.participation_rate1[i] / self.N_wells
 		# for iwell in self.wells_indices:
 		# 	self.histograms1[iwell] = np.histogram2d(np.float64(self.X1[iwell]), np.float64(self.Y1[iwell]), bins=100)
 		# 	self.rho_histograms1[iwell] = np.histogram(np.float64(self.RHO1[iwell] ** 2), bins=100)
@@ -68,10 +68,10 @@ class TwoTrajsGenerator(DynamicsGenerator):
 
 	def set_constants_of_motion(self):
 		DynamicsGenerator.set_constants_of_motion(self)
-		self.energy1, self.number_of_particles1, self.angular_momentum1 = self.calc_constants_of_motion(self.RHO1, self.THETA1, self.X1, self.Y1)
-		self.participation_rate1 = np.sum(self.RHO1 ** 4, axis=(0,1,2)) / (np.sum(self.RHO1 ** 2, axis=(0,1,2)) ** 2)
-		self.effective_nonlinearity1 = self.beta * self.participation_rate1 / self.N_wells
-		for i in self.wells_indices:
-			self.histograms1[i] = np.histogram2d(np.float64(self.X1[i]), np.float64(self.Y1[i]), bins=100)
-			self.rho_histograms1[i] = np.histogram(np.float64(self.RHO1[i] ** 2), bins=100)
+		# self.energy1, self.number_of_particles1, self.angular_momentum1 = self.calc_constants_of_motion(self.RHO1, self.THETA1, self.X1, self.Y1)
+		# self.participation_rate1 = np.sum(self.RHO1 ** 4, axis=(0,1,2)) / (np.sum(self.RHO1 ** 2, axis=(0,1,2)) ** 2)
+		# self.effective_nonlinearity1 = self.beta * self.participation_rate1 / self.N_wells
+		# for i in self.wells_indices:
+		# 	self.histograms1[i] = np.histogram2d(np.float64(self.X1[i]), np.float64(self.Y1[i]), bins=100)
+		# 	self.rho_histograms1[i] = np.histogram(np.float64(self.RHO1[i] ** 2), bins=100)
 

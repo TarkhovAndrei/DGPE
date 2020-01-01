@@ -83,11 +83,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GPElib/instability_generator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="133">
-              <caret line="40" column="42" lean-forward="true" selection-start-line="40" selection-start-column="42" selection-end-line="40" selection-end-column="42" />
+            <state relative-caret-position="46">
+              <caret line="55" column="43" lean-forward="true" selection-start-line="55" selection-start-column="43" selection-end-line="55" selection-end-column="43" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/GPElib/two_trajs_generator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="625">
+              <caret line="67" lean-forward="true" selection-start-line="67" selection-end-line="67" />
             </state>
           </provider>
         </entry>
@@ -97,15 +106,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="420">
               <caret line="28" column="5" selection-start-line="28" selection-start-column="5" selection-end-line="28" selection-end-column="6" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="615">
-              <caret line="42" selection-start-line="42" selection-end-line="42" />
             </state>
           </provider>
         </entry>
@@ -175,7 +175,6 @@
         <option value="$PROJECT_DIR$/GPElib/lyapunov_generator.py" />
         <option value="$PROJECT_DIR$/GPElib/topology.py" />
         <option value="$PROJECT_DIR$/GPElib/visualisation.py" />
-        <option value="$PROJECT_DIR$/GPElib/two_trajs_generator.py" />
         <option value="$PROJECT_DIR$/GPElib/trajectory_analysator.py" />
         <option value="$PROJECT_DIR$/GPE_phase_exp.py" />
         <option value="$PROJECT_DIR$/GPE_erg_time_and_phase_trans.py" />
@@ -188,6 +187,7 @@
         <option value="$PROJECT_DIR$/GPElib/gpu_dgpe_conservative.py" />
         <option value="$USER_HOME$/tmp/GPE_erg_time_and_phase_trans_3D_10x10x10_R_425.py" />
         <option value="$PROJECT_DIR$/GPElib/instability_generator.py" />
+        <option value="$PROJECT_DIR$/GPElib/two_trajs_generator.py" />
       </list>
     </option>
   </component>
@@ -414,16 +414,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPElib/two_trajs_generator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="3" selection-start-line="25" selection-start-column="3" selection-end-line="25" selection-end-column="3" />
-          <folding>
-            <element signature="e#1588#1606#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/trajectory_analysator.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="375">
@@ -566,8 +556,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GPElib/instability_generator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="40" column="42" lean-forward="true" selection-start-line="40" selection-start-column="42" selection-end-line="40" selection-end-column="42" />
+        <state relative-caret-position="46">
+          <caret line="55" column="43" lean-forward="true" selection-start-line="55" selection-start-column="43" selection-end-line="55" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPElib/two_trajs_generator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="625">
+          <caret line="67" lean-forward="true" selection-start-line="67" selection-end-line="67" />
         </state>
       </provider>
     </entry>
