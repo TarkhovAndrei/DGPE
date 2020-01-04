@@ -887,6 +887,11 @@ class DynamicsGenerator(object):
 		self.beta = -1. * self.beta * (1.0 + error_beta * np.random.randn())
 		self.e_disorder = -1. * self.e_disorder * (1.0 + error_disorder * np.random.randn())
 		self.e_disorder_flat = self.e_disorder.flatten()
+		self.beta_flat = -1. * self.beta_flat
+		self.h_dis_x_flat = -1. * self.h_dis_x_flat
+		self.h_dis_y_flat = -1. * self.h_dis_y_flat
+		self.beta_disorder_array_flattened = -1. * self.beta_disorder_array_flattened
+		self.e_disorder_flat = -1. * self.e_disorder_flat
 
 	def Hamiltonian_fast(self):
 		self.dpsi *= 0
