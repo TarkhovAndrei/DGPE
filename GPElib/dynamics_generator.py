@@ -55,6 +55,7 @@ class DynamicsGenerator(object):
 
 		self.J = kwargs.get('J', 1.0)
 		self.anisotropy = kwargs.get('anisotropy', 1.0)
+		self.anisotropy_y = kwargs.get('anisotropy_y', 1.0)
 
 		self.beta_amplitude = kwargs.get('beta', 0.01)
 		self.gamma = kwargs.get('gamma', 0.01)
@@ -514,7 +515,7 @@ class DynamicsGenerator(object):
 			ts = np.arange(self.n_steps, dtype=self.FloatPrecision) * self.step
 			self.T[:self.n_steps] = ts
 
-			conservative_ODE = DGPE_ODE(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma, self.quenching_gamma,
+			conservative_ODE = DGPE_ODE(self.torch_device, self.N_wells, self.J, self.anisotropy, self.anisotropy_y, self.gamma, self.quenching_gamma,
 				 self.nn_idx_1, self.nn_idx_2, self.nn_idy_1, self.nn_idy_2, self.nn_idz_1, self.nn_idz_2,
 				 self.h_dis_x_flat, self.h_dis_y_flat,
 				 self.beta_disorder_array_flattened, self.beta_flat, self.e_disorder_flat)
@@ -744,7 +745,7 @@ class DynamicsGenerator(object):
 			ts = np.arange(N_max, dtype=self.FloatPrecision) * self.step
 			self.T[:N_max] = ts
 
-			relaxational_ODE = DGPE_ODE_RELAXATION(self.torch_device, self.N_wells, self.J, self.anisotropy, self.gamma, self.quenching_gamma,
+			relaxational_ODE = DGPE_ODE_RELAXATION(self.torch_device, self.N_wells, self.J, self.anisotropy, self.anisotropy_y, self.gamma, self.quenching_gamma,
 										self.nn_idx_1, self.nn_idx_2, self.nn_idy_1, self.nn_idy_2, self.nn_idz_1,
 										self.nn_idz_2,
 										self.h_dis_x_flat, self.h_dis_y_flat,
@@ -974,8 +975,8 @@ class DynamicsGenerator(object):
 
 			self.dpsi[:self.N_wells] += -self.J * (self.psi[self.N_wells:][self.nn_idx_1] +
 					   							   self.psi[self.N_wells:][self.nn_idx_2] +
-												   self.psi[self.N_wells:][self.nn_idy_1] +
-												   self.psi[self.N_wells:][self.nn_idy_2] +
+								self.anisotropy_y * (self.psi[self.N_wells:][self.nn_idy_1] +
+												   self.psi[self.N_wells:][self.nn_idy_2]) +
 							    self.anisotropy * (self.psi[self.N_wells:][self.nn_idz_1] +
 								 				   self.psi[self.N_wells:][self.nn_idz_2]
 								   					  )
@@ -984,8 +985,8 @@ class DynamicsGenerator(object):
 			self.dpsi[self.N_wells:] += self.J * (
 											self.psi[:self.N_wells][self.nn_idx_1] +
 					   						self.psi[:self.N_wells][self.nn_idx_2] +
-											self.psi[:self.N_wells][self.nn_idy_1] +
-					   						self.psi[:self.N_wells][self.nn_idy_2] +
+						 self.anisotropy_y * (self.psi[:self.N_wells][self.nn_idy_1] +
+					   						self.psi[:self.N_wells][self.nn_idy_2]) +
 						 self.anisotropy * (self.psi[:self.N_wells][self.nn_idz_1] +
 											self.psi[:self.N_wells][self.nn_idz_2]
 										   )
@@ -1034,8 +1035,8 @@ class DynamicsGenerator(object):
 			self.xL += self.J * (
 								   self.psi[:self.N_wells][self.nn_idx_1] +
 								   self.psi[:self.N_wells][self.nn_idx_2] +
-								   self.psi[:self.N_wells][self.nn_idy_1] +
-								   self.psi[:self.N_wells][self.nn_idy_2] +
+				self.anisotropy_y * (self.psi[:self.N_wells][self.nn_idy_1] +
+								   self.psi[:self.N_wells][self.nn_idy_2]) +
 				self.anisotropy * (self.psi[:self.N_wells][self.nn_idz_1] +
 								   self.psi[:self.N_wells][self.nn_idz_2]
 									  )
@@ -1043,8 +1044,8 @@ class DynamicsGenerator(object):
 			self.yL += self.J * (
 											self.psi[self.N_wells:][self.nn_idx_1] +
 					   						self.psi[self.N_wells:][self.nn_idx_2] +
-											self.psi[self.N_wells:][self.nn_idy_1] +
-					   						self.psi[self.N_wells:][self.nn_idy_2] +
+						self.anisotropy_y * (self.psi[self.N_wells:][self.nn_idy_1] +
+					   						self.psi[self.N_wells:][self.nn_idy_2]) +
 						 self.anisotropy * (self.psi[self.N_wells:][self.nn_idz_1] +
 											self.psi[self.N_wells:][self.nn_idz_2]
 										   )
@@ -1359,8 +1360,8 @@ class DynamicsGenerator(object):
 			E_new += np.sum(-self.J * (y * (
 												   y[self.nn_idx_1] +
 												   y[self.nn_idx_2] +
-												   y[self.nn_idy_1] +
-												   y[self.nn_idy_2] +
+								self.anisotropy_y * (y[self.nn_idy_1] +
+												   y[self.nn_idy_2]) +
 							   self.anisotropy * (y[self.nn_idz_1] +
 												  y[self.nn_idz_2]
 																      )
@@ -1368,8 +1369,8 @@ class DynamicsGenerator(object):
 									   x * (
 													x[self.nn_idx_1] +
 													x[self.nn_idx_2] +
-													x[self.nn_idy_1] +
-													x[self.nn_idy_2] +
+							   self.anisotropy_y * (x[self.nn_idy_1] +
+													x[self.nn_idy_2]) +
 								self.anisotropy * (x[self.nn_idz_1] +
 												   x[self.nn_idz_2]
 									   )
@@ -1400,8 +1401,8 @@ class DynamicsGenerator(object):
 			-self.J * (PSI[:,self.N_wells:] * (
 					PSI[:,self.N_wells:][:,self.nn_idx_1] +
 					PSI[:,self.N_wells:][:,self.nn_idx_2] +
-					PSI[:,self.N_wells:][:,self.nn_idy_1] +
-					PSI[:,self.N_wells:][:,self.nn_idy_2] +
+					self.anisotropy_y * (PSI[:,self.N_wells:][:,self.nn_idy_1] +
+					PSI[:,self.N_wells:][:,self.nn_idy_2]) +
 					self.anisotropy * (PSI[:,self.N_wells:][:,self.nn_idz_1] +
 									   PSI[:,self.N_wells:][:,self.nn_idz_2]
 									   )
@@ -1409,8 +1410,8 @@ class DynamicsGenerator(object):
 									   PSI[:, :self.N_wells] * (
 											   PSI[:,:self.N_wells][:,self.nn_idx_1] +
 											   PSI[:,:self.N_wells][:,self.nn_idx_2] +
-											   PSI[:,:self.N_wells][:,self.nn_idy_1] +
-											   PSI[:,:self.N_wells][:,self.nn_idy_2] +
+											   self.anisotropy_y * (PSI[:,:self.N_wells][:,self.nn_idy_1] +
+											   PSI[:,:self.N_wells][:,self.nn_idy_2]) +
 											   self.anisotropy * (PSI[:,:self.N_wells][:,self.nn_idz_1] +
 																  PSI[:,:self.N_wells][:,self.nn_idz_2]
 																  )

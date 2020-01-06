@@ -6,7 +6,7 @@ import numpy as np
 
 class DGPE_ODE(torch.nn.Module):
 
-	def __init__(self, device, N_wells, J, anisotropy, gamma, quenching_gamma,
+	def __init__(self, device, N_wells, J, anisotropy, anisotropy_y, gamma, quenching_gamma,
 				 nn_idx_1, nn_idx_2, nn_idy_1, nn_idy_2, nn_idz_1, nn_idz_2,
 				 h_dis_x_flat, h_dis_y_flat,
 				 beta_disorder_array_flattened, beta_flat, e_disorder_flat
@@ -15,6 +15,7 @@ class DGPE_ODE(torch.nn.Module):
 
 		self.J = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + J).to(device), requires_grad=False)
 		self.anisotropy = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + anisotropy).to(device), requires_grad=False)
+		self.anisotropy_y = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + anisotropy_y).to(device), requires_grad=False)
 
 		self.gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + gamma).to(device), requires_grad=False)
 		self.quenching_gamma = torch.nn.Parameter(torch.tensor(np.zeros(N_wells) + quenching_gamma).to(device), requires_grad=False)
@@ -59,8 +60,8 @@ class DGPE_ODE(torch.nn.Module):
 			self.e_disorder * y[self.N_wells:] - (self.J * (
 					torch.gather(y[self.N_wells:], 0, self.nn_idx_1) +
 					torch.gather(y[self.N_wells:], 0, self.nn_idx_2) +
-					torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
-					torch.gather(y[self.N_wells:], 0, self.nn_idy_2) +
+					self.anisotropy_y * (torch.gather(y[self.N_wells:], 0, self.nn_idy_1) +
+					torch.gather(y[self.N_wells:], 0, self.nn_idy_2)) +
 					self.anisotropy * (torch.gather(y[self.N_wells:], 0, self.nn_idz_1) +
 									   torch.gather(y[self.N_wells:], 0, self.nn_idz_2)
 									   )
@@ -71,8 +72,8 @@ class DGPE_ODE(torch.nn.Module):
 			(self.J * (
 					torch.gather(y[:self.N_wells], 0, self.nn_idx_1) +
 					torch.gather(y[:self.N_wells], 0, self.nn_idx_2) +
-					torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
-					torch.gather(y[:self.N_wells], 0, self.nn_idy_2) +
+					self.anisotropy_y * (torch.gather(y[:self.N_wells], 0, self.nn_idy_1) +
+					torch.gather(y[:self.N_wells], 0, self.nn_idy_2)) +
 					self.anisotropy * (torch.gather(y[:self.N_wells], 0, self.nn_idz_1) +
 									   torch.gather(y[:self.N_wells], 0, self.nn_idz_2)
 									   )
