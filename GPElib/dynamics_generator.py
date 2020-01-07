@@ -906,6 +906,9 @@ class DynamicsGenerator(object):
 				if idx > 3:
 					self.dpsi[i] -= self.anisotropy * self.J * (self.psi[j] * np.sin(self.psi[j + self.N_wells] - self.psi[i + self.N_wells]))
 					self.dpsi[i + self.N_wells] += self.anisotropy * self.J  * (self.psi[j] * np.cos(self.psi[j + self.N_wells] - self.psi[i + self.N_wells])) / self.psi[i]
+				elif idx > 1:
+					self.dpsi[i] -= self.anisotropy_y * self.J * (self.psi[j] * np.sin(self.psi[j + self.N_wells] - self.psi[i + self.N_wells]))
+					self.dpsi[i + self.N_wells] += self.anisotropy_y * self.J  * (self.psi[j] * np.cos(self.psi[j + self.N_wells] - self.psi[i + self.N_wells])) / self.psi[i]
 				else:
 					self.dpsi[i] -= self.J * (self.psi[j] * np.sin(self.psi[j + self.N_wells] - self.psi[i + self.N_wells]))
 					self.dpsi[i + self.N_wells] += self.J  * (self.psi[j] * np.cos(self.psi[j + self.N_wells] - self.psi[i + self.N_wells])) / self.psi[i]
@@ -927,6 +930,9 @@ class DynamicsGenerator(object):
 				if idx > 3:
 					self.xL[i] += self.anisotropy * self.J * self.psi[j] * np.cos(self.psi[j + self.N_wells])
 					self.yL[i] += self.anisotropy * self.J * self.psi[j] * np.sin(self.psi[j + self.N_wells])
+				elif idx > 1:
+					self.xL[i] += self.anisotropy_y * self.J * self.psi[j] * np.cos(self.psi[j + self.N_wells])
+					self.yL[i] += self.anisotropy_y * self.J * self.psi[j] * np.sin(self.psi[j + self.N_wells])
 				else:
 					self.xL[i] += self.J * self.psi[j] * np.cos(self.psi[j + self.N_wells])
 					self.yL[i] += self.J * self.psi[j] * np.sin(self.psi[j + self.N_wells])
@@ -1003,7 +1009,10 @@ class DynamicsGenerator(object):
 					if idx > 3:
 						self.dpsi[i] += - self.anisotropy * self.J * self.psi[j + self.N_wells]
 						self.dpsi[i + self.N_wells] += self.anisotropy * self.J * self.psi[j]
-					else:
+					elif idx > 1:
+						self.dpsi[i] += - self.anisotropy_y * self.J * self.psi[j + self.N_wells]
+						self.dpsi[i + self.N_wells] += self.anisotropy_y * self.J * self.psi[j]
+				else:
 						self.dpsi[i] += -self.J * self.psi[j + self.N_wells]
 						self.dpsi[i + self.N_wells] += self.J * self.psi[j]
 
@@ -1061,6 +1070,9 @@ class DynamicsGenerator(object):
 					if idx > 3:
 						self.xL[i] += self.anisotropy * self.J * self.psi[j]
 						self.yL[i] += self.anisotropy * self.J * self.psi[j + self.N_wells]
+					elif idx > 1:
+							self.xL[i] += self.anisotropy_y * self.J * self.psi[j]
+							self.yL[i] += self.anisotropy_y * self.J * self.psi[j + self.N_wells]
 					else:
 						self.xL[i] += self.J * self.psi[j]
 						self.yL[i] += self.J * self.psi[j + self.N_wells]
@@ -1103,6 +1115,9 @@ class DynamicsGenerator(object):
 				if idx > 3:
 					self.dpsi[i] += - self.anisotropy * self.J * self.psi[j+self.N_wells]
 					self.dpsi[i + self.N_wells] += self.anisotropy * self.J * self.psi[j]
+				elif idx > 1:
+					self.dpsi[i] += - self.anisotropy_y * self.J * self.psi[j+self.N_wells]
+					self.dpsi[i + self.N_wells] += self.anisotropy_y * self.J * self.psi[j]
 				else:
 					self.dpsi[i] += -self.J * self.psi[j+self.N_wells]
 					self.dpsi[i + self.N_wells] += self.J * self.psi[j]
@@ -1133,6 +1148,9 @@ class DynamicsGenerator(object):
 				if idx > 3:
 					self.xL[i] += self.anisotropy * self.J * self.psi[j]
 					self.yL[i] += self.anisotropy * self.J * self.psi[j + self.N_wells]
+				elif idx > 1:
+					self.xL[i] += self.anisotropy_y * self.J * self.psi[j]
+					self.yL[i] += self.anisotropy_y * self.J * self.psi[j + self.N_wells]
 				else:
 					self.xL[i] += self.J * self.psi[j]
 					self.yL[i] += self.J * self.psi[j + self.N_wells]
@@ -1164,6 +1182,9 @@ class DynamicsGenerator(object):
 				if idx > 3:
 					self.xL[i] += self.anisotropy * self.J * self.psiJac[j]
 					self.yL[i] += self.anisotropy * self.J * self.psiJac[j + self.N_wells]
+				elif idx > 1:
+					self.xL[i] += self.anisotropy_y * self.J * self.psiJac[j]
+					self.yL[i] += self.anisotropy_y * self.J * self.psiJac[j + self.N_wells]
 				else:
 					self.xL[i] += self.J * self.psiJac[j]
 					self.yL[i] += self.J * self.psiJac[j + self.N_wells]
@@ -1299,6 +1320,8 @@ class DynamicsGenerator(object):
 				# Introduce anisotropy of J for the 3rd axis
 				if idx > 3:
 					energy += (- self.anisotropy * self.J * (RHO[k] * RHO[j] * np.cos(THETA[k] - THETA[j])))
+				elif idx > 1:
+					energy += (- self.anisotropy_y * self.J * (RHO[k] * RHO[j] * np.cos(THETA[k] - THETA[j])))
 				else:
 					energy += (- self.J * (RHO[k] * RHO[j] * np.cos(THETA[k] - THETA[j])))
 
@@ -1321,6 +1344,8 @@ class DynamicsGenerator(object):
 				# Introduce anisotropy of J for the 3rd axis
 				if idx > 3:
 					energy += (- self.anisotropy * self.J * (RHO[k] * RHO[j] * np.cos(THETA[k] - THETA[j])))
+				elif idx > 1:
+					energy += (- self.anisotropy_y * self.J * (RHO[k] * RHO[j] * np.cos(THETA[k] - THETA[j])))
 				else:
 					energy += (- self.J * (RHO[k] * RHO[j] * np.cos(THETA[k] - THETA[j])))
 			# angular_momentum += - 2 * self.J * (X[:,j] * (0*Y[:,self.NN(j-1)] + Y[:,self.NN(j+1)]) - Y[:,j] * (0*X[:,self.NN(j-1)] + X[:,self.NN(j+1)]))
@@ -1389,6 +1414,8 @@ class DynamicsGenerator(object):
 					# Introduce anisotropy of J for the 3rd axis
 					if idx > 3:
 						E_new += (-self.anisotropy * self.J * (x[j] * x[k] + y[j] * y[k]))
+					elif idx > 1:
+						E_new += (-self.anisotropy_y * self.J * (x[j] * x[k] + y[j] * y[k]))
 					else:
 						E_new += (-self.J * (x[j] * x[k] + y[j] * y[k]))
 		return E_new
@@ -1445,6 +1472,8 @@ class DynamicsGenerator(object):
 				# Introduce anisotropy of J for the 3rd axis
 				if idx > 3:
 					E_kin += (-self.anisotropy * self.J * (x[j] * x[k] + y[j] * y[k]))
+				elif idx > 1:
+					E_kin += (-self.anisotropy_y * self.J * (x[j] * x[k] + y[j] * y[k]))
 				else:
 					E_kin += (-self.J * (x[j] * x[k] + y[j] * y[k]))
 
