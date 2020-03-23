@@ -2004,7 +2004,7 @@ def one_realization(t, self, x, y, nx, ny, nxi, nyi, pert_len, iters, Es, Es_Amp
 		Es_Amp[ind] = self.calc_energy_XY(x + dx_Amp, y + dy_Amp, 0)
 		Es_Ph[ind] = self.calc_energy_XY(x + dx_Ph, y + dy_Ph, 0)
 
-#
+
 def one_realization_slow(t, self, x, y, nx, ny, nxi, nyi, pert_len, iters, Es, Es_Amp, Es_Ph):
 	# t = q.get()
 	#numpy.random.seed(int((time()+some_parameter*1000))

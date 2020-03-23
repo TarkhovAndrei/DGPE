@@ -28,7 +28,8 @@ SOFTWARE.
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as np
-from mayavi.mlab import orientation_axes
+# from mayavi.mlab import orientation_axes
+
 class Topology(object):
 	def __init__(self, **kwargs):
 		if 'PSI' in kwargs:
