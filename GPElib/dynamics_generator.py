@@ -1370,6 +1370,94 @@ class DynamicsGenerator(object):
 		else:
 			return np.zeros(self.n_steps, dtype=self.FloatPrecision)
 
+	def calc_kin_plus_4_pot_energy_XY_global(self, PSI):
+		# PSI[time, 2*N_wells]
+		if (self.use_matrix_operations_for_energy):
+			return np.sum(4. * self.beta_flat / 2. * ((PSI[:, :self.N_wells] ** 2 + PSI[:, self.N_wells:] ** 2) ** 2) +
+						  -2 * self.J * (PSI[:, self.N_wells:] * (
+					PSI[:, self.N_wells:][:, self.nn_idx_1] +
+					PSI[:, self.N_wells:][:, self.nn_idx_2] +
+					PSI[:, self.N_wells:][:, self.nn_idy_1] +
+					PSI[:, self.N_wells:][:, self.nn_idy_2] +
+					self.anisotropy * (PSI[:, self.N_wells:][:, self.nn_idz_1] +
+									   PSI[:, self.N_wells:][:, self.nn_idz_2]
+									   )
+			) +
+										 PSI[:, :self.N_wells] * (
+												 PSI[:, :self.N_wells][:, self.nn_idx_1] +
+												 PSI[:, :self.N_wells][:, self.nn_idx_2] +
+												 PSI[:, :self.N_wells][:, self.nn_idy_1] +
+												 PSI[:, :self.N_wells][:, self.nn_idy_2] +
+												 self.anisotropy * (PSI[:, :self.N_wells][:, self.nn_idz_1] +
+																	PSI[:, :self.N_wells][:, self.nn_idz_2]
+																	)
+										 )
+										 ), axis=1)
+		else:
+			return np.zeros(self.n_steps, dtype=self.FloatPrecision)
+
+	def dE2_analytical(self, PSI):
+		# PSI[time, 2*N_wells]
+		if (self.use_matrix_operations_for_energy):
+			return np.sum(
+				# 4U^2
+				4. * (self.beta_flat ** 2) * ((PSI[:, :self.N_wells] ** 2 + PSI[:, self.N_wells:] ** 2) ** 3)
+
+				# 8JU
+				- 8. * self.beta_flat * self.J * (PSI[:, :self.N_wells] ** 2 + PSI[:, self.N_wells:] ** 2) * (
+							PSI[:, self.N_wells:] * (
+							PSI[:, self.N_wells:][:, self.nn_idx_1] +
+							PSI[:, self.N_wells:][:, self.nn_idx_2] +
+							PSI[:, self.N_wells:][:, self.nn_idy_1] +
+							PSI[:, self.N_wells:][:, self.nn_idy_2] +
+							self.anisotropy * (PSI[:, self.N_wells:][:, self.nn_idz_1] +
+											   PSI[:, self.N_wells:][:, self.nn_idz_2]
+											   )
+					) +
+							PSI[:, :self.N_wells] * (
+									PSI[:, :self.N_wells][:, self.nn_idx_1] +
+									PSI[:, :self.N_wells][:, self.nn_idx_2] +
+									PSI[:, :self.N_wells][:, self.nn_idy_1] +
+									PSI[:, :self.N_wells][:, self.nn_idy_2] +
+									self.anisotropy * (PSI[:, :self.N_wells][:, self.nn_idz_1] +
+													   PSI[:, :self.N_wells][:, self.nn_idz_2]
+													   )
+							)
+
+							) +
+				# 4J^2
+
+				4. * (self.J ** 2) * (((
+											   PSI[:, self.N_wells:][:, self.nn_idx_1] +
+											   PSI[:, self.N_wells:][:, self.nn_idx_2] +
+											   PSI[:, self.N_wells:][:, self.nn_idy_1] +
+											   PSI[:, self.N_wells:][:, self.nn_idy_2] +
+											   self.anisotropy * (PSI[:, self.N_wells:][:, self.nn_idz_1] +
+																  PSI[:, self.N_wells:][:, self.nn_idz_2]
+																  )
+									   ) ** 2) +
+									  ((
+											   PSI[:, :self.N_wells][:, self.nn_idx_1] +
+											   PSI[:, :self.N_wells][:, self.nn_idx_2] +
+											   PSI[:, :self.N_wells][:, self.nn_idy_1] +
+											   PSI[:, :self.N_wells][:, self.nn_idy_2] +
+											   self.anisotropy * (PSI[:, :self.N_wells][:, self.nn_idz_1] +
+																  PSI[:, :self.N_wells][:, self.nn_idz_2]
+																  )
+									   ) ** 2)
+
+									  ), axis=1)
+		else:
+			return np.zeros(self.n_steps, dtype=self.FloatPrecision)
+
+	def calc_analytical_temperature(self, PSI):  # pert_len=0.014):
+		E0 = self.calc_energy_XY_global(PSI).reshape(-1, 1)
+		E0_kin_pl_4_pot = calc_kin_plus_4_pot_energy_XY_global(self, PSI).reshape(-1, 1)
+		dE2 = dE2_analytical(self, PSI).reshape(-1, 1)
+		total_part = np.sum(PSI ** 2, axis=1).reshape(-1, 1)
+		return np.nanmean(4 * self.beta_flat * total_part - E0_kin_pl_4_pot, axis=1) / (
+					0.5 * (np.nanmean(dE2 - (E0_kin_pl_4_pot ** 2) / (total_part), axis=1)))
+
 	def calc_nop_XY_global(self, PSI):
 		# PSI[time, 2*N_wells]
 		if (self.use_matrix_operations_for_energy):
@@ -1924,7 +2012,7 @@ def one_realization(t, self, x, y, nx, ny, nxi, nyi, pert_len, iters, Es, Es_Amp
 		Es_Amp[ind] = self.calc_energy_XY(x + dx_Amp, y + dy_Amp, 0)
 		Es_Ph[ind] = self.calc_energy_XY(x + dx_Ph, y + dy_Ph, 0)
 
-#
+
 def one_realization_slow(t, self, x, y, nx, ny, nxi, nyi, pert_len, iters, Es, Es_Amp, Es_Ph):
 	# t = q.get()
 	#numpy.random.seed(int((time()+some_parameter*1000))
